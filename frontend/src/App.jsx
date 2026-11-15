@@ -9,7 +9,7 @@ import UploadSection from "./components/UploadSection";
 import ManipulationReport from "./reports/ManipulationReport";
 import ProvenanceReport from "./reports/ProvenanceReport";
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 export default function App() {
   const [file, setFile] = useState(null);
