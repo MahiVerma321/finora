@@ -1,0 +1,97 @@
+
+/* =========================================
+   PROVENANCE REPORT — VISUAL DESIGN
+========================================= */
+
+.provenance-section {
+  width: 100%;
+  max-width: 1500px;
+  margin: 35px auto;
+  box-sizing: border-box;
+}
+
+.provenance-section .provenance-summary {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(111, 145, 255, 0.2);
+  background:
+    radial-gradient(
+      ellipse at top right,
+      rgba(83, 103, 255, 0.13),
+      transparent 55%
+    ),
+    linear-gradient(135deg, #111b35, #10182c);
+}
+
+.provenance-section .provenance-card {
+  position: relative;
+  overflow: hidden;
+  margin-top: 22px;
+  padding: 30px;
+  border: 1px solid rgba(133, 157, 210, 0.15);
+  border-radius: 20px;
+  background: linear-gradient(
+    145deg,
+    rgba(20, 32, 57, 0.96),
+    rgba(13, 23, 43, 0.98)
+  );
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.14);
+}
+
+.provenance-section .provenance-card h3 {
+  margin-top: 4px;
+  margin-bottom: 14px;
+  color: #f1f5ff;
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.3px;
+}
+
+.provenance-section .provenance-card .eyebrow {
+  margin-bottom: 9px;
+  color: #8da9ff;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 1.8px;
+}
+
+.provenance-section .provenance-card .subtext {
+  color: #aab8d1;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.provenance-section .provenance-empty {
+  padding: 20px;
+  border: 1px solid rgba(133, 157, 210, 0.13);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.provenance-section .provenance-empty p {
+  margin-top: 14px;
+}
+
+.provenance-section .result-grid {
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.provenance-section .findings-card {
+  box-sizing: border-box;
+}
+
+.provenance-section .technical-details {
+  margin-top: 12px;
+}
+
+.provenance-section .disclaimer {
+  margin-top: 25px;
+  padding: 18px 22px;
+  border-left: 3px solid #829bff;
+  border-radius: 8px;
+  background: rgba(104, 130, 255, 0.07);
+  color: #aebbd2;
+  font-size: 14px;
+  line-height: 1.75;
+}

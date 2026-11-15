@@ -1,0 +1,596 @@
+
+/* ==========================================
+   DOCUTRACE — MANIPULATION REPORT
+========================================== */
+
+.analysis-section {
+  width: 100%;
+  max-width:  none;
+  margin: 35px auto;
+  box-sizing: border-box;
+  padding: clamp(22px, 3vw, 42px);
+  color: #eaf2ff;
+  background:
+    radial-gradient(ellipse at 5% 0%, rgba(31, 105, 173, 0.13), transparent 38%),
+    linear-gradient(145deg, #0d192b, #101e32 60%, #0c192b);
+  border: 1px solid rgba(113, 161, 211, 0.2);
+  border-radius: 20px;
+  box-shadow: 0 22px 65px rgba(0, 0, 0, 0.2);
+}
+
+.analysis-section .card-heading {
+  padding-bottom: 24px;
+  margin-bottom: 26px;
+  border-bottom: 1px solid rgba(142, 177, 215, 0.15);
+}
+
+.analysis-section .card-heading h3 {
+  color: #f2f7ff;
+  font-size: clamp(25px, 3vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.8px;
+}
+
+.analysis-section .eyebrow {
+  color: #65c7e9;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+/* OVERALL RESULT */
+
+.analysis-section .summary-card {
+  position: relative;
+  overflow: hidden;
+  padding: 30px;
+  margin-bottom: 24px;
+  background: linear-gradient(
+    115deg,
+    rgba(25, 63, 91, 0.72),
+    rgba(19, 39, 64, 0.86)
+  );
+  border: 1px solid rgba(90, 173, 215, 0.25);
+  border-radius: 15px;
+}
+
+.analysis-section .summary-card::after {
+  content: "";
+  position: absolute;
+  top: -90px;
+  right: -75px;
+  width: 230px;
+  height: 230px;
+  border-radius: 50%;
+  background: rgba(53, 164, 194, 0.08);
+  filter: blur(35px);
+  pointer-events: none;
+}
+
+.analysis-section .finding-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.analysis-section .summary-card h3 {
+  color: #f3f8ff;
+  font-size: clamp(23px, 2.6vw, 31px);
+  letter-spacing: -0.6px;
+}
+
+.analysis-section .summary-card > p.subtext {
+  max-width: 850px;
+  color: #b7c9dd;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.analysis-section .result-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.analysis-section .info-card {
+  padding: 19px;
+  background: rgba(9, 24, 42, 0.6);
+  border: 1px solid rgba(123, 165, 204, 0.17);
+  border-radius: 11px;
+}
+
+.analysis-section .info-card span {
+  display: block;
+  color: #8faac5;
+  font-size: 13px;
+  margin-bottom: 9px;
+}
+
+.analysis-section .info-card strong {
+  color: #eaf5ff;
+  font-size: 23px;
+}
+
+/* FINDINGS */
+
+.analysis-section .findings-card {
+  padding: 27px;
+  margin-bottom: 22px;
+  background: rgba(18, 34, 54, 0.78);
+  border: 1px solid rgba(119, 157, 197, 0.17);
+  border-radius: 15px;
+}
+
+.analysis-section .findings-card > h3 {
+  margin-bottom: 18px;
+  color: #edf5ff;
+  font-size: 22px;
+  letter-spacing: -0.4px;
+}
+
+.analysis-section .findings-card > p.subtext {
+  color: #a9bdd2;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.analysis-section .finding {
+  padding: 19px 20px;
+  margin-top: 12px;
+  background: rgba(8, 22, 39, 0.55);
+  border: 1px solid rgba(116, 158, 197, 0.14);
+  border-radius: 10px;
+}
+
+.analysis-section .finding-heading {
+  margin-bottom: 8px;
+}
+
+.analysis-section .finding-heading strong {
+  color: #e9f3ff;
+  font-size: 16px;
+}
+
+.analysis-section .finding > p {
+  color: #aebfd2;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+/* STATUS LABELS */
+
+.analysis-section .severity {
+  padding: 6px 11px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.analysis-section .severity-success {
+  color: #65e3bd;
+  background: rgba(54, 197, 148, 0.12);
+  border: 1px solid rgba(54, 197, 148, 0.24);
+}
+
+.analysis-section .severity-warning {
+  color: #ff9d9d;
+  background: rgba(244, 91, 103, 0.12);
+  border: 1px solid rgba(244, 91, 103, 0.25);
+}
+
+.analysis-section .severity-review {
+  color: #ffd28a;
+  background: rgba(239, 174, 75, 0.12);
+  border: 1px solid rgba(239, 174, 75, 0.25);
+}
+
+.analysis-section .severity-info {
+  color: #8ed4f4;
+  background: rgba(78, 164, 211, 0.12);
+  border: 1px solid rgba(78, 164, 211, 0.24);
+}
+
+/* TECHNICAL DETAILS */
+
+.analysis-section .technical-details,
+.analysis-section details:not(.technical-nested) {
+  margin-top: 12px;
+  padding: 16px 19px;
+  background: rgba(7, 19, 34, 0.62);
+  border: 1px solid rgba(111, 157, 199, 0.17);
+  border-radius: 10px;
+}
+
+.analysis-section .technical-details summary,
+.analysis-section details:not(.technical-nested) > summary {
+  color: #c9e2f7;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.analysis-section .technical-details summary::-webkit-details-marker,
+.analysis-section details:not(.technical-nested) > summary::-webkit-details-marker {
+  display: none;
+}
+
+.analysis-section .technical-details summary::after,
+.analysis-section details:not(.technical-nested) > summary::after {
+  content: "+";
+  float: right;
+  color: #65c7e9;
+  font-size: 19px;
+}
+
+.analysis-section .technical-details[open] > summary::after,
+.analysis-section details:not(.technical-nested)[open] > summary::after {
+  content: "−";
+}
+
+.analysis-section .technical-details-content {
+  padding-top: 17px;
+}
+
+.analysis-section .technical-fields {
+  display: grid;
+  gap: 10px;
+}
+
+.analysis-section .technical-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 13px 14px;
+  background: rgba(27, 48, 71, 0.5);
+  border: 1px solid rgba(120, 159, 197, 0.1);
+  border-radius: 8px;
+}
+
+.analysis-section .technical-field-heading {
+  flex: 1;
+}
+
+.analysis-section .technical-field-heading strong {
+  display: block;
+  color: #dceafa;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.analysis-section .technical-field-heading span {
+  display: block;
+  color: #819bb5;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.analysis-section .technical-field-value {
+  max-width: 55%;
+  color: #b8d8ef;
+  font-size: 13px;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.analysis-section .technical-nested {
+  text-align: left;
+}
+
+.analysis-section .technical-nested summary {
+  color: #70c9ed;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.analysis-section .technical-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.analysis-section .technical-list-item {
+  padding: 10px;
+  background: rgba(5, 17, 30, 0.55);
+  border-radius: 7px;
+  color: #b8cadc;
+  font-size: 13px;
+}
+
+.analysis-section .technical-value {
+  color: #b8d8ef;
+}
+
+/* EVIDENCE PREVIEW */
+
+.analysis-section iframe {
+  display: block;
+  width: 100%;
+  min-height: 500px;
+  margin-top: 20px;
+  background: #f5f7fa;
+  border: 1px solid rgba(107, 166, 208, 0.25) !important;
+  border-radius: 12px !important;
+}
+
+.analysis-section .ela-page {
+  padding: 18px;
+  margin-top: 16px;
+  background: rgba(25, 45, 67, 0.6);
+  border-radius: 10px;
+}
+
+.analysis-section .ela-page h4 {
+  color: #e1efff;
+  font-size: 17px;
+  margin-bottom: 12px;
+}
+
+.analysis-section .ela-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 12px auto;
+  border: 1px solid rgba(128, 173, 211, 0.2);
+  border-radius: 9px;
+}
+
+.analysis-section .primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 20px;
+  color: #061a29;
+  background: linear-gradient(110deg, #69d7ed, #6de2c1);
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* DISCLAIMER */
+
+.analysis-section .disclaimer {
+  padding: 17px 20px;
+  color: #a7bfd5;
+  background: rgba(61, 113, 151, 0.09);
+  border-left: 3px solid #55b9dc;
+  border-radius: 5px;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 700px) {
+  .analysis-section {
+    padding: 20px;
+    margin: 35px auto;
+  }
+
+  .analysis-section .summary-card,
+  .analysis-section .findings-card {
+    padding: 20px;
+  }
+
+  .analysis-section .result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .analysis-section .technical-field {
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .analysis-section .technical-field-value {
+    max-width: 100%;
+    text-align: left;
+  }
+
+  .analysis-section iframe {
+    min-height: 400px;
+  }
+}
+
+
+/* =================================
+   REPORT READABILITY IMPROVEMENTS
+================================= */
+
+.analysis-section {
+  width: min(1500px, calc(100% - 48px));
+  max-width: 1500px;
+  box-sizing: border-box;
+  padding: 36px 42px;
+}
+
+.analysis-section,
+.analysis-section * {
+  box-sizing: border-box;
+}
+
+/* Main headings */
+
+.analysis-section .card-heading h3 {
+  font-size: 25px;
+}
+
+.analysis-section .summary-card h3 {
+  font-size: 27px;
+  line-height: 1.35;
+}
+
+.analysis-section .findings-card > h3 {
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+
+/* General readability */
+
+.analysis-section .subtext,
+.analysis-section .finding p,
+.analysis-section .summary-card > p:not(.eyebrow) {
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.analysis-section .eyebrow {
+  font-size: 12px;
+  letter-spacing: 1.5px;
+}
+
+/* Finding cards */
+
+.analysis-section .finding {
+  padding: 20px;
+  margin-bottom: 12px;
+}
+
+.analysis-section .finding-heading strong {
+  font-size: 16px;
+}
+
+.analysis-section .finding p {
+  margin-top: 10px;
+}
+
+/* Technical details */
+
+.analysis-section .technical-details {
+  margin-top: 12px;
+}
+
+.analysis-section .technical-details > summary {
+  font-size: 16px;
+  font-weight: 700;
+  padding: 19px 20px;
+  min-height: 58px;
+}
+
+.analysis-section .technical-details-content {
+  padding: 12px 16px 18px;
+}
+
+.analysis-section .technical-field {
+  padding: 14px 16px;
+  min-height: 54px;
+  gap: 16px;
+}
+
+.analysis-section .technical-field-heading strong {
+  font-size: 14px;
+}
+
+.analysis-section .technical-field-heading span {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.analysis-section .technical-field-value,
+.analysis-section .technical-value {
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+/* Align expandable evidence controls */
+
+.analysis-section .technical-field-value > details,
+.analysis-section .technical-list-item > details {
+  width: 100%;
+}
+
+.analysis-section .technical-nested > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid rgba(90, 190, 255, 0.18);
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+}
+
+.analysis-section .technical-nested > summary::after {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.analysis-section .technical-nested[open] > summary {
+  margin-bottom: 12px;
+}
+
+.analysis-section .technical-list {
+  width: 100%;
+}
+
+.analysis-section .technical-list-item {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+/* Better spacing between report sections */
+
+.analysis-section .findings-card {
+  padding: 24px;
+  margin-top: 20px;
+}
+
+.analysis-section .technical-fields {
+  gap: 9px;
+}
+
+/* Mobile and smaller screens */
+
+@media (max-width: 900px) {
+  .analysis-section {
+    width: calc(100% - 28px);
+    padding: 24px 18px;
+  }
+
+  .analysis-section .technical-field {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .analysis-section .technical-field-value {
+    text-align: left;
+  }
+}
+
+@media (max-width: 600px) {
+  .analysis-section .summary-card h3 {
+    font-size: 22px;
+  }
+
+  .analysis-section .subtext,
+  .analysis-section .finding p {
+    font-size: 14px;
+  }
+
+  .analysis-section .findings-card {
+    padding: 16px;
+  }
+}
+
+/* MATCH REPORT WIDTH WITH UPLOAD SECTION */
+
+.page .analysis-section {
+  width: 100% !important;
+  max-width: 1500px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  box-sizing: border-box;
+}
+

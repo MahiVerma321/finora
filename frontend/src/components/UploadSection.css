@@ -1,0 +1,1185 @@
+
+/* ==========================================
+   DOCUTRACE — DRIBBBLE INSPIRED UPLOAD UI
+========================================== */
+
+.page .upload-card.dribbble-upload {
+  width: 100%;
+  max-width: 1500px;
+  margin: 45px auto 65px;
+  padding: 55px;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 1px solid rgba(100, 160, 220, 0.19);
+  border-radius: 25px;
+  background:
+    radial-gradient(ellipse at 85% 10%, rgba(76, 91, 220, 0.15), transparent 35%),
+    radial-gradient(ellipse at 5% 85%, rgba(30, 161, 206, 0.10), transparent 35%),
+    linear-gradient(145deg, #101d31 0%, #0d1729 55%, #111c32 100%);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.25);
+}
+
+.page .upload-card.dribbble-upload::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 55px;
+  width: 180px;
+  height: 2px;
+  background: linear-gradient(90deg, #51d5ff, #7768ff, transparent);
+}
+
+/* INTRO */
+
+.dribbble-upload .upload-intro {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 25px;
+  margin-bottom: 43px;
+}
+
+.dribbble-upload .upload-overline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #72cfff;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 2.2px;
+  margin-bottom: 20px;
+}
+
+.dribbble-upload .upload-live-dot,
+.dribbble-upload .protocol-indicator,
+.dribbble-upload .result-ready-badge span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4de3bb;
+  box-shadow: 0 0 12px rgba(77, 227, 187, 0.7);
+}
+
+.dribbble-upload .upload-intro h2 {
+  margin: 0;
+  color: #f3f6ff;
+  font-size: clamp(36px, 4.5vw, 61px);
+  line-height: 1.12;
+  letter-spacing: -2.8px;
+  font-weight: 800;
+}
+
+.dribbble-upload .upload-intro h2 span {
+  color: transparent;
+  background: linear-gradient(95deg, #62d9ff, #8294ff 70%, #b29bff);
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
+.dribbble-upload .upload-intro-copy > p {
+  max-width: 560px;
+  margin: 18px 0 0;
+  color: #9aacc5;
+  font-size: 14px;
+  line-height: 1.85;
+}
+
+.dribbble-upload .upload-index {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+  flex-shrink: 0;
+  color: #8197b4;
+  font-size: 9px;
+  letter-spacing: 1.7px;
+}
+
+.dribbble-upload .upload-index strong {
+  color: rgba(112, 154, 220, 0.28);
+  font-size: 74px;
+  line-height: 1;
+  letter-spacing: -5px;
+}
+
+/* MAIN PANEL */
+
+.dribbble-upload .upload-main-panel {
+  padding: 30px;
+  border: 1px solid rgba(117, 155, 207, 0.19);
+  border-radius: 19px;
+  background: rgba(21, 35, 57, 0.77);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.dribbble-upload .upload-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.dribbble-upload .upload-step-label {
+  color: #67cfff;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 2px;
+}
+
+.dribbble-upload .upload-panel-heading h3,
+.dribbble-upload .dribbble-result-heading h3 {
+  color: #edf4ff;
+  font-size: 24px;
+  font-weight: 750;
+  letter-spacing: -0.8px;
+  margin: 8px 0 5px;
+}
+
+.dribbble-upload .upload-panel-heading p {
+  color: #849bb7;
+  font-size: 12px;
+  margin: 0;
+}
+
+.dribbble-upload .upload-format {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 15px;
+  border: 1px solid rgba(85, 165, 220, 0.23);
+  border-radius: 30px;
+  background: rgba(42, 98, 147, 0.13);
+  color: #b4d9f5;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+
+.dribbble-upload .format-dot {
+  width: 6px;
+  height: 6px;
+  background: #65d9ff;
+  border-radius: 50%;
+}
+
+/* WORKSPACE LAYOUT */
+
+.dribbble-upload .upload-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.7fr);
+  gap: 20px;
+}
+
+/* DROP AREA */
+
+.dribbble-upload .upload-drop-area {
+  min-width: 0;
+  min-height: 370px;
+  position: relative;
+  border: 1px dashed rgba(99, 165, 224, 0.40);
+  border-radius: 15px;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(45, 120, 202, 0.16), transparent 65%),
+    linear-gradient(145deg, rgba(29, 54, 85, 0.52), rgba(17, 34, 57, 0.66));
+  transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
+}
+
+.dribbble-upload .upload-drop-area:hover {
+  border-color: #5ecfff;
+  background:
+    radial-gradient(ellipse at 50% 42%, rgba(45, 120, 202, 0.22), transparent 65%),
+    linear-gradient(145deg, rgba(29, 65, 105, 0.58), rgba(17, 34, 57, 0.72));
+  box-shadow: inset 0 0 45px rgba(52, 151, 221, 0.07);
+}
+
+.dribbble-upload .upload-drop-area input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.dribbble-upload .upload-drop-label {
+  min-height: 370px;
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+/* PDF ILLUSTRATION */
+
+.dribbble-upload .upload-artwork {
+  position: relative;
+  width: 155px;
+  height: 155px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 20px;
+}
+
+.dribbble-upload .upload-artwork-glow {
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: rgba(58, 145, 238, 0.20);
+  filter: blur(30px);
+}
+
+.dribbble-upload .upload-pdf-sheet {
+  position: relative;
+  width: 93px;
+  height: 116px;
+  padding: 29px 13px 12px;
+  box-sizing: border-box;
+  border: 1px solid rgba(166, 213, 255, 0.75);
+  border-radius: 7px;
+  background: linear-gradient(150deg, #f4f8ff, #c6ddf6);
+  box-shadow: 0 15px 38px rgba(0, 0, 0, 0.32);
+  transform: rotate(-7deg);
+}
+
+.dribbble-upload .upload-pdf-fold {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 22px;
+  height: 22px;
+  background: #a5c9ed;
+  clip-path: polygon(0 0, 100% 100%, 0 100%);
+  border-bottom-left-radius: 4px;
+}
+
+.dribbble-upload .upload-pdf-mark {
+  position: absolute;
+  left: 13px;
+  top: 11px;
+  color: #2476c4;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.dribbble-upload .upload-pdf-line {
+  height: 3px;
+  width: 70%;
+  margin-bottom: 7px;
+  border-radius: 5px;
+  background: #a7bfd9;
+}
+
+.dribbble-upload .upload-pdf-line.line-long {
+  width: 100%;
+}
+
+.dribbble-upload .upload-pdf-line.line-short {
+  width: 48%;
+}
+
+.dribbble-upload .upload-pdf-mini-box {
+  width: 100%;
+  height: 22px;
+  margin-top: 9px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #c6d9ee, #dce9f6);
+}
+
+.dribbble-upload .upload-artwork-symbol {
+  position: absolute;
+  right: 0;
+  bottom: 2px;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(121, 210, 255, 0.55);
+  border-radius: 12px;
+  background: linear-gradient(145deg, #328ddf, #5d67ed);
+  color: white;
+  font-size: 25px;
+  box-shadow: 0 8px 22px rgba(48, 125, 230, 0.4);
+}
+
+.dribbble-upload .upload-drop-label > strong {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  color: #edf5ff;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+}
+
+.dribbble-upload .upload-browse-text {
+  margin-top: 9px;
+  color: #94a9c3;
+  font-size: 12px;
+}
+
+.dribbble-upload .upload-browse-text span {
+  color: #69d3ff;
+  font-weight: 700;
+}
+
+.dribbble-upload .upload-file-restriction {
+  margin-top: 26px;
+  color: #6f88a6;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1.7px;
+}
+
+/* PROTOCOL SIDE PANEL */
+
+.dribbble-upload .upload-side-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 23px;
+  border: 1px solid rgba(114, 157, 211, 0.15);
+  border-radius: 15px;
+  background: linear-gradient(155deg, rgba(28, 47, 73, 0.83), rgba(17, 31, 52, 0.93));
+}
+
+.dribbble-upload .upload-side-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px;
+}
+
+.dribbble-upload .side-panel-label,
+.dribbble-upload .side-panel-number {
+  color: #7f9cbb;
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 1.5px;
+}
+
+.dribbble-upload .protocol-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 17px 0;
+  border-bottom: 1px solid rgba(128, 164, 204, 0.12);
+}
+
+.dribbble-upload .protocol-icon {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: rgba(57, 145, 218, 0.16);
+  border: 1px solid rgba(82, 172, 236, 0.25);
+  color: #76d4ff;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.dribbble-upload .protocol-item > div:nth-child(2) {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.dribbble-upload .protocol-item strong {
+  color: #dce9f8;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.dribbble-upload .protocol-item > div:nth-child(2) span {
+  color: #8098b3;
+  font-size: 9px;
+}
+
+.dribbble-upload .protocol-indicator {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.dribbble-upload .protocol-indicator.inactive {
+  background: #60728a;
+  box-shadow: none;
+}
+
+.dribbble-upload .upload-security-note {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 23px;
+  color: #85a9c8;
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 1.4px;
+}
+
+.dribbble-upload .security-symbol {
+  color: #68d5ff;
+  font-size: 19px;
+}
+
+/* SELECTED FILE */
+
+.dribbble-upload .dribbble-selected-file {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 20px;
+  padding: 16px 19px;
+  border: 1px solid rgba(83, 169, 225, 0.25);
+  border-radius: 12px;
+  background: rgba(31, 68, 105, 0.27);
+}
+
+.dribbble-upload .selected-file-icon {
+  width: 42px;
+  height: 48px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  color: #68d3ff;
+  font-size: 10px;
+  font-weight: 900;
+  background: rgba(46, 137, 206, 0.18);
+  border: 1px solid rgba(84, 173, 235, 0.3);
+  border-radius: 7px;
+}
+
+.dribbble-upload .selected-file-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.dribbble-upload .selected-file-info strong {
+  color: #e4effc;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.dribbble-upload .selected-file-info span {
+  color: #91a8c1;
+  font-size: 10px;
+}
+
+.dribbble-upload .selected-file-remove {
+  margin-left: auto;
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: #ff9eaa;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* FOOTER ACTION */
+
+.dribbble-upload .upload-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-top: 25px;
+}
+
+.dribbble-upload .upload-footer-note {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #8fa9c5;
+  font-size: 10px;
+}
+
+.dribbble-upload .footer-check {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(66, 213, 173, 0.13);
+  color: #61e1b9;
+  font-size: 11px;
+}
+
+.dribbble-upload .dribbble-upload-button {
+  min-height: 50px;
+  padding: 0 23px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  border: 1px solid rgba(153, 172, 255, 0.4);
+  border-radius: 10px;
+  background: linear-gradient(105deg, #317fe5, #675de9);
+  color: white;
+  font-size: 12px;
+  font-weight: 750;
+  box-shadow: 0 8px 25px rgba(61, 105, 221, 0.23);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dribbble-upload .dribbble-upload-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(61, 105, 221, 0.38);
+}
+
+.dribbble-upload .dribbble-upload-button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+/* RESULT */
+
+.dribbble-upload .dribbble-result {
+  margin-top: 35px;
+  padding-top: 30px;
+  border-top: 1px solid rgba(120, 158, 204, 0.19);
+}
+
+.dribbble-upload .dribbble-result-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.dribbble-upload .result-ready-badge {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 13px;
+  color: #69dfbb;
+  border: 1px solid rgba(77, 227, 187, 0.23);
+  border-radius: 30px;
+  background: rgba(77, 227, 187, 0.07);
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 1px;
+}
+
+.dribbble-upload .result-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 13px;
+}
+
+.dribbble-upload .dribbble-analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 25px;
+}
+
+.dribbble-upload .dribbble-analysis-card {
+  position: relative;
+  min-width: 0;
+  padding: 28px;
+  overflow: hidden;
+  border: 1px solid rgba(89, 159, 225, 0.25);
+  border-radius: 15px;
+  background: linear-gradient(145deg, rgba(34, 67, 105, 0.45), rgba(19, 36, 61, 0.72));
+}
+
+.dribbble-upload .provenance-card {
+  background: linear-gradient(145deg, rgba(71, 55, 120, 0.32), rgba(23, 35, 63, 0.78));
+  border-color: rgba(146, 126, 220, 0.24);
+}
+
+.dribbble-upload .analysis-card-number {
+  position: absolute;
+  right: 22px;
+  top: 16px;
+  color: rgba(139, 176, 221, 0.19);
+  font-size: 42px;
+  font-weight: 800;
+}
+
+.dribbble-upload .analysis-card-icon {
+  width: 43px;
+  height: 43px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 23px;
+  border-radius: 12px;
+  background: rgba(66, 152, 225, 0.17);
+  border: 1px solid rgba(91, 175, 238, 0.25);
+  color: #72d5ff;
+  font-size: 24px;
+}
+
+.dribbble-upload .provenance-card .analysis-card-icon {
+  color: #b4a0ff;
+  background: rgba(137, 107, 218, 0.15);
+  border-color: rgba(161, 133, 239, 0.25);
+}
+
+.dribbble-upload .dribbble-analysis-card h3 {
+  margin: 10px 0;
+  color: #edf4ff;
+  font-size: 19px;
+  letter-spacing: -0.5px;
+}
+
+.dribbble-upload .dribbble-analysis-card p {
+  min-height: 48px;
+  color: #9aafc8;
+  font-size: 11px;
+  line-height: 1.8;
+}
+
+.dribbble-upload .dribbble-analysis-button {
+  width: 100%;
+  min-height: 45px;
+  margin-top: 14px;
+  padding: 0 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid rgba(101, 174, 230, 0.35);
+  border-radius: 8px;
+  background: rgba(52, 116, 182, 0.19);
+  color: #c9e9ff;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.dribbble-upload .dribbble-analysis-button:hover:not(:disabled) {
+  background: rgba(58, 140, 212, 0.35);
+  border-color: #69d4ff;
+}
+
+.dribbble-upload .dribbble-analysis-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dribbble-upload .provenance-card .dribbble-analysis-button {
+  border-color: rgba(161, 133, 239, 0.3);
+  background: rgba(115, 91, 190, 0.17);
+  color: #d6caff;
+}
+
+/* ERROR */
+
+.dribbble-upload .message.error {
+  color: #ff9da8;
+  font-size: 12px;
+  margin-top: 15px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1000px) {
+  .page .upload-card.dribbble-upload {
+    padding: 38px 28px;
+  }
+
+  .dribbble-upload .upload-workspace {
+    grid-template-columns: minmax(0, 1.1fr) minmax(230px, 0.9fr);
+  }
+
+  .dribbble-upload .upload-side-panel {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 760px) {
+  .page .upload-card.dribbble-upload {
+    padding: 30px 20px;
+  }
+
+  .dribbble-upload .upload-intro {
+    align-items: flex-start;
+  }
+
+  .dribbble-upload .upload-index {
+    display: none;
+  }
+
+  .dribbble-upload .upload-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .dribbble-upload .upload-side-panel {
+    min-height: 300px;
+  }
+
+  .dribbble-upload .dribbble-analysis-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .page .upload-card.dribbble-upload {
+    padding: 25px 14px;
+    border-radius: 17px;
+  }
+
+  .dribbble-upload .upload-intro h2 {
+    font-size: 37px;
+    letter-spacing: -1.8px;
+  }
+
+  .dribbble-upload .upload-intro-copy > p {
+    font-size: 12px;
+  }
+
+  .dribbble-upload .upload-main-panel {
+    padding: 17px;
+  }
+
+  .dribbble-upload .upload-panel-heading h3 {
+    font-size: 20px;
+  }
+
+  .dribbble-upload .upload-drop-area,
+  .dribbble-upload .upload-drop-label {
+    min-height: 320px;
+  }
+
+  .dribbble-upload .upload-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dribbble-upload .dribbble-upload-button {
+    width: 100%;
+  }
+
+  .dribbble-upload .result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dribbble-upload .dribbble-result-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dribbble-upload .dribbble-analysis-card {
+    padding: 22px;
+  }
+}
+
+
+/* ==========================================
+   TYPOGRAPHY ENHANCEMENT
+========================================== */
+
+.dribbble-upload .upload-overline {
+  font-size: 12px;
+}
+
+.dribbble-upload .upload-intro-copy > p {
+  font-size: 16px;
+  line-height: 1.9;
+}
+
+.dribbble-upload .upload-step-label {
+  font-size: 11px;
+  letter-spacing: 1.8px;
+}
+
+.dribbble-upload .upload-panel-heading h3,
+.dribbble-upload .dribbble-result-heading h3 {
+  font-size: 28px;
+}
+
+.dribbble-upload .upload-panel-heading p {
+  font-size: 14px;
+}
+
+.dribbble-upload .upload-format {
+  font-size: 11px;
+}
+
+.dribbble-upload .upload-drop-label > strong {
+  font-size: 23px;
+}
+
+.dribbble-upload .upload-browse-text {
+  font-size: 15px;
+}
+
+.dribbble-upload .upload-file-restriction {
+  font-size: 10px;
+}
+
+.dribbble-upload .side-panel-label,
+.dribbble-upload .side-panel-number {
+  font-size: 10px;
+}
+
+.dribbble-upload .protocol-item {
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  background: transparent;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  transition: background 0.2s ease;
+}
+
+.dribbble-upload .protocol-item strong {
+  font-size: 14px;
+}
+
+.dribbble-upload .protocol-item > div:nth-child(2) span {
+  font-size: 11px;
+}
+
+.dribbble-upload .protocol-item.active {
+  background: rgba(63, 140, 211, 0.09);
+}
+
+.dribbble-upload .protocol-item:hover {
+  background: rgba(63, 140, 211, 0.12);
+}
+
+.dribbble-upload .protocol-indicator.active {
+  background: #4de3bb;
+  box-shadow: 0 0 14px rgba(77, 227, 187, 0.85);
+}
+
+.dribble-upload .protocol-indicator.inactive {
+  background: #60728a;
+  box-shadow: none;
+}
+
+.dribbble-upload .upload-security-note {
+  font-size: 10px;
+}
+
+.dribbble-upload .upload-footer-note {
+  font-size: 12px;
+}
+
+.dribbble-upload .dribbble-upload-button {
+  font-size: 14px;
+}
+
+.dribbble-upload .selected-file-info strong {
+  font-size: 14px;
+}
+
+.dribbble-upload .selected-file-info span {
+  font-size: 12px;
+}
+
+.dribbble-upload .dribbble-analysis-card h3 {
+  font-size: 22px;
+}
+
+.dribbble-upload .dribbble-analysis-card p {
+  font-size: 14px;
+}
+
+.dribbble-upload .dribbble-analysis-button {
+  font-size: 13px;
+}
+
+@media (max-width: 520px) {
+  .dribbble-upload .upload-intro-copy > p {
+    font-size: 14px;
+  }
+
+  .dribbble-upload .upload-drop-label > strong {
+    font-size: 19px;
+  }
+
+  .dribbble-upload .protocol-item strong {
+    font-size: 13px;
+  }
+}
+
+
+/* FORCE UPLOAD SECTION TYPOGRAPHY */
+
+.page .upload-card.dribbble-upload .upload-intro h2 {
+  font-size: clamp(46px, 5vw, 68px) !important;
+}
+
+.page .upload-card.dribbble-upload .upload-intro-copy > p {
+  font-size: 17px !important;
+  line-height: 1.9 !important;
+}
+
+.page .upload-card.dribbble-upload .upload-overline {
+  font-size: 12px !important;
+}
+
+.page .upload-card.dribbble-upload .upload-panel-heading h3 {
+  font-size: 30px !important;
+}
+
+.page .upload-card.dribbble-upload .upload-panel-heading p {
+  font-size: 15px !important;
+}
+
+.page .upload-card.dribbble-upload .upload-step-label {
+  font-size: 12px !important;
+}
+
+.page .upload-card.dribbble-upload .upload-drop-label > strong {
+  font-size: 25px !important;
+}
+
+.page .upload-card.dribbble-upload .upload-browse-text {
+  font-size: 16px !important;
+}
+
+.page .upload-card.dribbble-upload .upload-file-restriction {
+  font-size: 10px !important;
+}
+
+.page .upload-card.dribbble-upload .protocol-item strong {
+  font-size: 15px !important;
+}
+
+.page .upload-card.dribbble-upload .protocol-item > div:nth-child(2) span {
+  font-size: 12px !important;
+}
+
+.page .upload-card.dribbble-upload .side-panel-label,
+.page .upload-card.dribbble-upload .side-panel-number {
+  font-size: 11px !important;
+}
+
+.page .upload-card.dribbble-upload .upload-security-note {
+  font-size: 11px !important;
+}
+
+.page .upload-card.dribbble-upload .upload-footer-note {
+  font-size: 13px !important;
+}
+
+.page .upload-card.dribbble-upload .dribbble-upload-button {
+  font-size: 15px !important;
+}
+
+.page .upload-card.dribbble-upload .selected-file-info strong {
+  font-size: 15px !important;
+}
+
+.page .upload-card.dribbble-upload .selected-file-info span {
+  font-size: 13px !important;
+}
+
+.page .upload-card.dribbble-upload .dribbble-analysis-card h3 {
+  font-size: 24px !important;
+}
+
+.page .upload-card.dribbble-upload .dribbble-analysis-card p {
+  font-size: 15px !important;
+}
+
+.page .upload-card.dribbble-upload .dribbble-analysis-button {
+  font-size: 14px !important;
+}
+
+@media (max-width: 520px) {
+  .page .upload-card.dribbble-upload .upload-intro h2 {
+    font-size: 39px !important;
+  }
+
+  .page .upload-card.dribbble-upload .upload-intro-copy > p {
+    font-size: 14px !important;
+  }
+}
+
+
+/* FINAL TYPOGRAPHY SIZE REFINEMENT */
+
+.page .upload-card.dribbble-upload .upload-intro h2 {
+  font-size: clamp(50px, 5.4vw, 73px) !important;
+}
+
+.page .upload-card.dribbble-upload .upload-intro-copy > p {
+  font-size: 18px !important;
+}
+
+.page .upload-card.dribbble-upload .upload-overline {
+  font-size: 13px !important;
+}
+
+.page .upload-card.dribbble-upload .upload-panel-heading h3 {
+  font-size: 32px !important;
+}
+
+.page .upload-card.dribbble-upload .upload-panel-heading p {
+  font-size: 16px !important;
+}
+
+.page .upload-card.dribbble-upload .upload-step-label {
+  font-size: 13px !important;
+}
+
+.page .upload-card.dribbble-upload .upload-drop-label > strong {
+  font-size: 27px !important;
+}
+
+.page .upload-card.dribbble-upload .upload-browse-text {
+  font-size: 17px !important;
+}
+
+.page .upload-card.dribbble-upload .protocol-item strong {
+  font-size: 16px !important;
+}
+
+.page .upload-card.dribbble-upload .protocol-item > div:nth-child(2) span {
+  font-size: 13px !important;
+}
+
+.page .upload-card.dribbble-upload .dribbble-analysis-card h3 {
+  font-size: 26px !important;
+}
+
+.page .upload-card.dribbble-upload .dribbble-analysis-card p {
+  font-size: 16px !important;
+}
+
+.page .upload-card.dribbble-upload .dribbble-upload-button,
+.page .upload-card.dribbble-upload .dribbble-analysis-button {
+  font-size: 15px !important;
+}
+
+
+/* ==========================================
+   FINAL UPLOAD SECTION POLISH
+========================================== */
+
+/* SELECTED FILE BAR */
+
+.page .upload-card.dribbble-upload .dribbble-selected-file {
+  min-height: 82px;
+  padding: 18px 22px;
+  gap: 18px;
+  box-sizing: border-box;
+  background: linear-gradient(
+    110deg,
+    rgba(36, 82, 125, 0.42),
+    rgba(27, 53, 86, 0.55)
+  );
+  border: 1px solid rgba(91, 174, 235, 0.35);
+}
+
+.page .upload-card.dribbble-upload .selected-file-icon {
+  width: 52px;
+  height: 56px;
+  font-size: 12px;
+  border-radius: 9px;
+  box-shadow: 0 0 18px rgba(51, 145, 222, 0.12);
+}
+
+.page .upload-card.dribbble-upload .selected-file-info {
+  flex: 1;
+  gap: 7px;
+}
+
+.page .upload-card.dribbble-upload .selected-file-info strong {
+  font-size: 15px !important;
+  color: #f0f6ff;
+}
+
+.page .upload-card.dribbble-upload .selected-file-info span {
+  font-size: 13px !important;
+}
+
+.page .upload-card.dribbble-upload .selected-file-remove {
+  padding: 9px 13px;
+  border: 1px solid rgba(255, 128, 147, 0.2);
+  border-radius: 7px;
+  background: rgba(255, 105, 130, 0.07);
+  font-size: 12px;
+}
+
+.page .upload-card.dribbble-upload .selected-file-remove:hover {
+  background: rgba(255, 105, 130, 0.16);
+}
+
+/* PROTOCOL PANEL ALIGNMENT */
+
+.page .upload-card.dribbble-upload .upload-side-panel {
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.page .upload-card.dribbble-upload .protocol-item {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  min-height: 66px;
+  box-sizing: border-box;
+  padding: 12px 34px 12px 10px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 7px;
+  border-bottom: 1px solid rgba(128, 164, 204, 0.12);
+  overflow: hidden;
+}
+
+.page .upload-card.dribbble-upload .protocol-item.active {
+  background: linear-gradient(
+    90deg,
+    rgba(52, 133, 207, 0.17),
+    rgba(52, 133, 207, 0.08)
+  );
+  border-bottom-color: rgba(85, 170, 235, 0.22);
+}
+
+.page .upload-card.dribbble-upload .protocol-item > div:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+
+.page .upload-card.dribbble-upload .protocol-indicator {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.page .upload-card.dribbble-upload .protocol-indicator.active {
+  background: #4de3bb;
+  box-shadow: 0 0 13px rgba(77, 227, 187, 0.85);
+}
+
+.page .upload-card.dribbble-upload .protocol-indicator.inactive {
+  background: #60728a;
+  box-shadow: none;
+}
+
+@media (max-width: 520px) {
+  .page .upload-card.dribbble-upload .dribbble-selected-file {
+    padding: 13px;
+    gap: 11px;
+  }
+
+  .page .upload-card.dribbble-upload .selected-file-icon {
+    width: 43px;
+    height: 48px;
+  }
+}

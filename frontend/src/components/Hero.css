@@ -1,0 +1,638 @@
+
+/* =====================================================
+   DOCUTRACE — FINAL FUTURISTIC HERO
+   One consolidated stylesheet
+===================================================== */
+
+.page > .hero-section.futuristic-hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+  align-items: center;
+  gap: 30px;
+
+  width: 100%;
+  max-width: 1500px;
+  min-height: 560px;
+  margin: 22px auto 55px;
+  padding: 55px 45px;
+
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid rgba(91, 133, 255, .16);
+  border-radius: 22px;
+
+  background:
+    radial-gradient(ellipse at 75% 45%, rgba(38, 88, 210, .19), transparent 38%),
+    radial-gradient(ellipse at 95% 15%, rgba(133, 54, 221, .13), transparent 35%),
+    linear-gradient(135deg, #111d35, #0c1427 75%);
+}
+
+/* Ambient lighting */
+
+.futuristic-hero .hero-glow {
+  position: absolute;
+  z-index: -1;
+  width: 350px;
+  height: 350px;
+  border-radius: 50%;
+  filter: blur(100px);
+  pointer-events: none;
+}
+
+.futuristic-hero .hero-glow-blue {
+  top: 5%;
+  right: 20%;
+  background: rgba(29, 103, 255, .20);
+}
+
+.futuristic-hero .hero-glow-purple {
+  right: -10%;
+  bottom: -20%;
+  background: rgba(130, 49, 224, .15);
+}
+
+/* Text content */
+
+.futuristic-hero .hero-content {
+  position: relative;
+  z-index: 3;
+  min-width: 0;
+  max-width: 650px;
+}
+
+.futuristic-hero .hero-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 16px;
+  color: #b9ceff;
+  background: rgba(37, 83, 171, .18);
+  border: 1px solid rgba(94, 142, 255, .34);
+  border-radius: 40px;
+  font: 600 10px var(--mono);
+  letter-spacing: .1em;
+}
+
+.futuristic-hero .hero-label-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #54e5ff;
+  box-shadow: 0 0 12px #54caff;
+}
+
+.futuristic-hero h1 {
+  margin: 28px 0 20px;
+  color: #f4f6ff;
+  font: 800 clamp(43px, 4.5vw, 66px)/1.1 var(--display);
+  letter-spacing: -.06em;
+  text-wrap: balance;
+}
+
+.futuristic-hero h1 > span:not(.hero-heading-light) {
+  color: #72aaff;
+  background: linear-gradient(100deg, #64b4ff, #9a82ff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.futuristic-hero h1 .hero-heading-light {
+  color: #d9dfff;
+}
+
+.futuristic-hero .hero-description {
+  max-width: 570px;
+  margin: 0;
+  color: #b4c2d8;
+  font-size: 15px;
+  line-height: 1.85;
+}
+
+/* Main action */
+
+.futuristic-hero .hero-actions {
+  display: flex;
+  align-items: center;
+  margin-top: 27px;
+}
+
+.futuristic-hero .hero-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 25px;
+  min-height: 57px;
+  padding: 15px 23px;
+  margin: 0;
+  color: white;
+  background: linear-gradient(110deg, #246ce9, #397ef8 60%, #625cf2);
+  border: 1px solid rgba(150, 181, 255, .65);
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(49, 105, 255, .25);
+  font-size: 16px;
+  font-weight: 800;
+  text-decoration: none;
+  transition: .25s ease;
+}
+
+.futuristic-hero .hero-cta:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(49, 105, 255, .4);
+}
+
+.futuristic-hero .hero-cta span {
+  font-size: 21px;
+}
+
+/* Capability indicators */
+
+.futuristic-hero .hero-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 35px;
+  color: #9aacca;
+  font: 9px var(--mono);
+  letter-spacing: .07em;
+}
+
+.futuristic-hero .hero-note-divider {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #6579ce;
+}
+
+/* Illustration area */
+
+.futuristic-hero .hero-visual {
+  position: relative;
+  z-index: 2;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 440px;
+  overflow: hidden;
+}
+
+/* Holographic rings */
+
+.futuristic-hero .hologram-ring {
+  position: absolute;
+  width: min(75%, 330px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(77, 133, 255, .32);
+  border-radius: 50%;
+  box-shadow: 0 0 35px rgba(54, 112, 255, .08);
+}
+
+.futuristic-hero .ring-two {
+  width: min(90%, 390px);
+  border-color: rgba(117, 91, 255, .23);
+}
+
+.futuristic-hero .ring-three {
+  width: min(100%, 440px);
+  border-color: rgba(64, 149, 255, .15);
+}
+
+.futuristic-hero .scan-orbit {
+  position: absolute;
+  width: min(92%, 405px);
+  aspect-ratio: 1;
+  border: 1px dashed rgba(92, 128, 255, .25);
+  border-radius: 50%;
+  animation: heroOrbit 35s linear infinite;
+}
+
+.futuristic-hero .scan-orbit-dot {
+  position: absolute;
+  top: 50%;
+  left: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #64d9ff;
+  box-shadow: 0 0 16px #459dff;
+}
+
+/* PDF document */
+
+.futuristic-hero .futuristic-document {
+  position: relative;
+  z-index: 2;
+  width: min(290px, 70%);
+  min-height: 375px;
+  padding: 23px;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: linear-gradient(145deg, #ffffff, #e9effb);
+  border: 1px solid white;
+  border-radius: 12px;
+  box-shadow:
+    0 0 35px rgba(72, 119, 255, .23),
+    0 30px 65px rgba(0, 0, 0, .45);
+  transform: perspective(1000px) rotateY(-6deg) rotateZ(2deg);
+  transition: transform .4s ease;
+}
+
+.futuristic-hero .futuristic-document:hover {
+  transform: perspective(1000px) rotateY(0) rotateZ(0) translateY(-5px);
+}
+
+.futuristic-hero .futuristic-document-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 22px;
+  color: #7185a8;
+  font: 8px var(--mono);
+}
+
+.futuristic-hero .pdf-chip {
+  padding: 7px 10px;
+  color: white;
+  background: #e05265;
+  border-radius: 5px;
+  font-weight: 700;
+}
+
+.futuristic-hero .pdf-document-title {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #d7e0ef;
+}
+
+.futuristic-hero .pdf-document-title > span {
+  color: #5477a6;
+  font: 700 8px var(--mono);
+  letter-spacing: .1em;
+}
+
+.futuristic-hero .pdf-document-title strong {
+  color: #253d60;
+  font: 800 16px var(--display);
+}
+
+.futuristic-hero .pdf-document-title small {
+  color: #8294af;
+  font: 8px var(--mono);
+}
+
+.futuristic-hero .pdf-document-preview {
+  display: grid;
+  grid-template-columns: 23px minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 18px;
+  padding: 13px 10px;
+  background: #f4f7fc;
+  border: 1px solid #dce5f3;
+  border-radius: 7px;
+}
+
+.futuristic-hero .pdf-preview-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 3px;
+}
+
+.futuristic-hero .pdf-preview-sidebar span {
+  height: 6px;
+  border-radius: 3px;
+  background: #a8bce0;
+}
+
+.futuristic-hero .pdf-preview-content {
+  min-width: 0;
+}
+
+.futuristic-hero .preview-heading {
+  width: 65%;
+  height: 8px;
+  margin-bottom: 12px;
+  border-radius: 4px;
+  background: #637fa7;
+}
+
+.futuristic-hero .preview-line {
+  width: 85%;
+  height: 5px;
+  margin-bottom: 8px;
+  border-radius: 3px;
+  background: #c3d0e3;
+}
+
+.futuristic-hero .preview-line.wide {
+  width: 100%;
+}
+
+.futuristic-hero .preview-line.medium {
+  width: 65%;
+}
+
+.futuristic-hero .preview-highlight {
+  margin: 13px 0;
+  padding: 9px;
+  background: rgba(103, 127, 255, .09);
+  border: 1px solid #8b9df2;
+  border-radius: 5px;
+}
+
+.futuristic-hero .preview-highlight span {
+  display: block;
+  margin-bottom: 8px;
+  color: #536bc1;
+  font: 700 7px var(--mono);
+}
+
+.futuristic-hero .preview-highlight div {
+  width: 90%;
+  height: 4px;
+  margin-bottom: 6px;
+  border-radius: 3px;
+  background: #a8b7df;
+}
+
+.futuristic-hero .preview-highlight div:last-child {
+  width: 60%;
+  margin-bottom: 0;
+}
+
+/* Scanning information panel */
+
+.futuristic-hero .pdf-scan-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 16px;
+  padding: 10px;
+  background: linear-gradient(110deg, #e4edff, #eeebff);
+  border: 1px solid #c9d7f5;
+  border-radius: 7px;
+}
+
+.futuristic-hero .pdf-scan-symbol {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: #456ee2;
+  background: white;
+  border-radius: 6px;
+  font-size: 21px;
+}
+
+.futuristic-hero .pdf-scan-label strong,
+.futuristic-hero .pdf-scan-label div span {
+  display: block;
+}
+
+.futuristic-hero .pdf-scan-label strong {
+  color: #304b78;
+  font: 700 8px var(--mono);
+}
+
+.futuristic-hero .pdf-scan-label div span {
+  margin-top: 4px;
+  color: #7185a6;
+  font-size: 8px;
+}
+
+.futuristic-hero .scan-status-dot {
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  margin-left: auto;
+  border-radius: 50%;
+  background: #28bf91;
+  box-shadow: 0 0 10px rgba(40, 191, 145, .65);
+}
+
+.futuristic-hero .pdf-document-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+  color: #8295b1;
+  font: 7px var(--mono);
+}
+
+.futuristic-hero .document-scan-beam {
+  position: absolute;
+  top: 5%;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #68aaff, #a18aff, transparent);
+  box-shadow: 0 0 15px #6d9cff;
+  animation: documentBeam 4s ease-in-out infinite;
+}
+
+/* Floating data cards */
+
+.futuristic-hero .floating-data-card {
+  position: absolute;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 205px;
+  max-width: 48%;
+  padding: 12px;
+  box-sizing: border-box;
+  background: rgba(17, 28, 54, .94);
+  border: 1px solid rgba(104, 142, 255, .43);
+  border-radius: 10px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .3);
+  backdrop-filter: blur(16px);
+  animation: heroFloat 5s ease-in-out infinite;
+}
+
+.futuristic-hero .data-card-top {
+  top: 35px;
+  right: 0;
+}
+
+.futuristic-hero .data-card-bottom {
+  bottom: 35px;
+  left: 0;
+  border-color: rgba(153, 105, 255, .45);
+  animation-delay: -2.5s;
+}
+
+.futuristic-hero .floating-card-icon {
+  width: 33px;
+  height: 33px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: #75c5ff;
+  background: rgba(57, 126, 248, .16);
+  border: 1px solid rgba(91, 157, 255, .25);
+  border-radius: 8px;
+  font-size: 19px;
+}
+
+.futuristic-hero .floating-card-icon.purple-icon {
+  color: #c1a0ff;
+  background: rgba(145, 91, 255, .16);
+}
+
+.futuristic-hero .floating-data-card strong,
+.futuristic-hero .floating-data-card div span {
+  display: block;
+}
+
+.futuristic-hero .floating-data-card strong {
+  color: #e5eaff;
+  font: 700 8px var(--mono);
+}
+
+.futuristic-hero .floating-data-card div span {
+  margin-top: 5px;
+  color: #9caecc;
+  font-size: 9px;
+}
+
+.futuristic-hero .visual-coordinate {
+  position: absolute;
+  right: 0;
+  bottom: 5px;
+  color: #8296b8;
+  font: 8px/1.8 var(--mono);
+  text-align: right;
+}
+
+/* Animations */
+
+@keyframes heroOrbit {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes heroFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+@keyframes documentBeam {
+  0%, 100% { top: 5%; opacity: .2; }
+  50% { top: 90%; opacity: .9; }
+}
+
+/* Tablet */
+
+@media (max-width: 1050px) {
+  .page > .hero-section.futuristic-hero {
+    min-height: 540px;
+    padding: 45px 28px;
+    gap: 15px;
+  }
+
+  .futuristic-hero h1 {
+    font-size: clamp(42px, 5vw, 58px);
+  }
+
+  .futuristic-hero .hero-visual {
+    min-height: 420px;
+  }
+
+  .futuristic-hero .floating-data-card {
+    width: 190px;
+  }
+}
+
+/* Stacked layout */
+
+@media (max-width: 850px) {
+  .page > .hero-section.futuristic-hero {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: auto;
+    margin-bottom: 40px;
+    padding: 45px 30px 25px;
+  }
+
+  .futuristic-hero .hero-content {
+    max-width: 680px;
+  }
+
+  .futuristic-hero .hero-visual {
+    min-height: 430px;
+  }
+}
+
+/* Small screens */
+
+@media (max-width: 520px) {
+  .page > .hero-section.futuristic-hero {
+    margin-top: 12px;
+    padding: 35px 18px 20px;
+    border-radius: 16px;
+  }
+
+  .futuristic-hero h1 {
+    font-size: clamp(38px, 9vw, 46px);
+  }
+
+  .futuristic-hero .hero-description {
+    font-size: 14px;
+  }
+
+  .futuristic-hero .hero-cta {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .futuristic-hero .hero-note {
+    gap: 9px;
+    font-size: 8px;
+  }
+
+  .futuristic-hero .hero-visual {
+    min-height: 390px;
+  }
+
+  .futuristic-hero .futuristic-document {
+    width: 245px;
+    min-height: 360px;
+    padding: 19px;
+  }
+
+  .futuristic-hero .floating-data-card {
+    width: 175px;
+    padding: 9px;
+  }
+
+  .futuristic-hero .data-card-top {
+    top: 12px;
+    right: 0;
+  }
+
+  .futuristic-hero .data-card-bottom {
+    bottom: 12px;
+    left: 0;
+  }
+
+  .futuristic-hero .visual-coordinate {
+    display: none;
+  }
+}
+
+/* Reduced motion */
+
+@media (prefers-reduced-motion: reduce) {
+  .futuristic-hero *,
+  .futuristic-hero *::before,
+  .futuristic-hero *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
