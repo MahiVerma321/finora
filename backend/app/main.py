@@ -29,12 +29,14 @@ app = FastAPI(
 # Local development only. Restrict this to your deployed frontend origin later.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://finora-ekoa1hcru-finora-930e.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 
