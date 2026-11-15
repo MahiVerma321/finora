@@ -32,6 +32,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "https://finora-ekoa1hcru-finora-930e.vercel.app",
+        "https://finora-5zzw4v8bq-finora-930e.vercel.app",
+        "https://finora-nu-eight.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
