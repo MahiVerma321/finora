@@ -100,7 +100,7 @@ export default function Hero() {
           </div>
 
           <div className="pdf-document-footer">
-            <span>DOCUTRACE FORENSICS</span>
+            <span>FINORA FORENSICS</span>
             <span>PAGE 01 / 01</span>
           </div>
 
@@ -124,7 +124,7 @@ export default function Hero() {
         </div>
 
         <div className="visual-coordinate">
-          SYSTEM / DOCUTRACE
+          SYSTEM / FINORA
           <br />
           SCAN ENGINE · ACTIVE
         </div>
