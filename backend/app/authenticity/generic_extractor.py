@@ -4,15 +4,7 @@ import re
 from app.authenticity.field_aliases import FIELD_ALIASES
 from app.authenticity.ticket_schema import make_field
 from app.authenticity.spatial_matching import match_spatial_value
-from app.authenticity.field_validator import (
-    validate_date,
-    validate_time,
-    validate_price,
-    validate_flight_number,
-    validate_train_number,
-    validate_location,
-    validate_seat,
-)
+from app.authenticity.field_validator import FIELD_VALIDATORS
 
 def normalize_text(text):
     """Normalize OCR text for label matching."""
@@ -62,18 +54,6 @@ def is_another_label(value):
                 return True
 
     return False
-
-FIELD_VALIDATORS = {
-    "origin": validate_location,
-    "destination": validate_location,
-    "seat": validate_seat,
-    "journey_date": validate_date,
-    "departure_time": validate_time,
-    "arrival_time": validate_time,
-    "ticket_price": validate_price,
-    "flight_number": validate_flight_number,
-    "train_number": validate_train_number,
-}
 
 
 def validate_generic_candidate(field_name, value):

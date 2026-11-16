@@ -1,6 +1,12 @@
 
 import pymupdf
 import re
+import os
+
+import pikepdf
+from pathlib import Path
+
+from app.retained_revision_detector import inspect_retained_text_changes
 
 
 FIELD_PATTERNS = {
@@ -119,207 +125,192 @@ def get_nearby_document_context(page, bbox, max_distance=100):
     )
 
 
-def extract_nearby_text(page, x, y):
+def _positioned_blocks(source, resources, initial_matrix=None, ancestors=()):
+    """Interpret positioning operators, including nested Form XObjects.
+
+    pikepdf tokenizes PDF strings and arrays so operator names inside text are
+    never interpreted as instructions. Matrices use PyMuPDF's row convention.
+    Text advance after a showing operator is intentionally unused: only empty
+    blocks' explicit origins are compared with rendered character geometry.
     """
-    Extract visible text near a PDF content-stream position.
-    PDF stream coordinates usually use a bottom-left origin,
-    while PyMuPDF text bounding boxes use a top-left origin.
+    matrix = initial_matrix or pymupdf.Matrix(1, 1)
+    stack = []
+    line_matrix = pymupdf.Matrix(1, 1)
+    text_matrix = pymupdf.Matrix(1, 1)
+    leading = 0.0
+    block = None
+    for operands, operator in pikepdf.parse_content_stream(source):
+        op = str(operator)
+        if op == "q":
+            stack.append((matrix, leading))
+        elif op == "Q" and stack:
+            matrix, leading = stack.pop()
+        elif op == "cm":
+            matrix = pymupdf.Matrix(*map(float, operands)) * matrix
+        elif op == "BT":
+            line_matrix = text_matrix = pymupdf.Matrix(1, 1)
+            block = {"origins": [], "has_text": False}
+        elif op == "Tm":
+            line_matrix = text_matrix = pymupdf.Matrix(*map(float, operands))
+            if block is not None:
+                block["origins"].append(pymupdf.Point(0, 0) * text_matrix * matrix)
+        elif op in ("Td", "TD"):
+            tx, ty = map(float, operands)
+            if op == "TD":
+                leading = -ty
+            line_matrix = pymupdf.Matrix(1, 0, 0, 1, tx, ty) * line_matrix
+            text_matrix = line_matrix
+            if block is not None:
+                block["origins"].append(pymupdf.Point(0, 0) * text_matrix * matrix)
+        elif op == "TL":
+            leading = float(operands[0])
+        elif op == "T*":
+            line_matrix = pymupdf.Matrix(1, 0, 0, 1, 0, -leading) * line_matrix
+            text_matrix = line_matrix
+        elif op in ("Tj", "TJ", "'", '"') and block is not None:
+            values = operands[0] if op == "TJ" else [operands[-1]]
+            if any(isinstance(value, pikepdf.String) and bytes(value) for value in values):
+                block["has_text"] = True
+        elif op == "ET" and block is not None:
+            if not block["has_text"]:
+                yield from block["origins"]
+            block = None
+        elif op == "Do":
+            form = resources.get("/XObject", {}).get(str(operands[0]))
+            if form is None or form.get("/Subtype") != "/Form":
+                continue
+            identity = form.objgen
+            if identity in ancestors:
+                raise ValueError("Recursive Form XObject cannot be inspected safely.")
+            form_matrix = pymupdf.Matrix(*map(float, form.get("/Matrix", [1, 0, 0, 1, 0, 0])))
+            yield from _positioned_blocks(
+                form, form.get("/Resources", resources), form_matrix * matrix,
+                ancestors + (identity,)
+            )
+
+
+def _span_text(span):
+    return "".join(chr(char[0]) for char in span["chars"])
+
+
+def _finding(page_number, kind, bbox, message, **details):
+    return {
+        "page": page_number,
+        "technique": "PDF Content Stream Analysis",
+        "finding": kind,
+        "severity": "review",
+        "evidence_type": "single_document_editing_indicator",
+        "text_bbox": list(bbox),
+        "interpretation": message,
+        **details,
+    }
+
+
+def _covered_text_findings(page, spans, page_number, minimum_coverage):
+    """Locate text painted before a later opaque rectangular fill.
+
+    Backgrounds drawn before text and translucent highlights are excluded.
+    These observations can also arise from intentional document design.
     """
-
-    page_height = page.rect.height
-    target_y = page_height - y
-
-    candidates = []
-
-    page_data = page.get_text("dict")
-
-    for block in page_data.get("blocks", []):
-        for line in block.get("lines", []):
-            for span in line.get("spans", []):
-
-                bbox = span.get("bbox")
-
-                if not bbox:
+    findings = []
+    for drawing in page.get_drawings():
+        if drawing.get("fill") is None or drawing.get("fill_opacity", 0) < 1:
+            continue
+        items = drawing.get("items", [])
+        if len(items) != 1 or items[0][0] != "re":
+            continue
+        rectangle = pymupdf.Rect(items[0][1])
+        covered = []
+        for span in spans:
+            if span["seqno"] >= drawing["seqno"] or span.get("type") == 3:
+                continue
+            for char in span["chars"]:
+                box = pymupdf.Rect(char[3])
+                if chr(char[0]).isspace() or box.is_empty:
                     continue
-
-                x0, y0, x1, y1 = bbox
-
-                horizontal_distance = abs(x0 - x)
-                vertical_distance = abs(((y0 + y1) / 2) - target_y)
-
-                if horizontal_distance < 15 and vertical_distance < 15:
-                    candidates.append({
-                        "text": span.get("text", ""),
-                        "font_name": span.get("font"),
-                        "font_size": span.get("size"),
-                        "bbox": list(bbox),
-                        "distance": horizontal_distance + vertical_distance
-                    })
-
-    candidates.sort(key=lambda item: item["distance"])
-
-    return candidates[0] if candidates else None
+                if (box & rectangle).get_area() / box.get_area() >= minimum_coverage:
+                    covered.append(char)
+        if not covered:
+            continue
+        bounds = pymupdf.Rect(covered[0][3])
+        for char in covered[1:]:
+            bounds |= pymupdf.Rect(char[3])
+        replacement = [span for span in spans if span["seqno"] > drawing["seqno"]
+                       and span.get("type") != 3 and (pymupdf.Rect(span["bbox"]) & rectangle).get_area() > 0]
+        findings.append(_finding(
+            page_number, "text_covered_by_later_rectangle", bounds,
+            "A later opaque rectangle covers earlier text. Review this region for intentional masking or editing.",
+            covered_text="".join(chr(char[0]) for char in covered),
+            replacement_text=" ".join(_span_text(span) for span in replacement) or None,
+            covering_bbox=list(rectangle), drawing_sequence=drawing["seqno"],
+        ))
+    return findings
 
 
 def analyze_content_streams(pdf_path):
-
-    doc = pymupdf.open(pdf_path)
+    tolerance = float(os.getenv("TEXT_POSITION_TOLERANCE", "2"))
+    coverage = float(os.getenv("TEXT_COVERAGE_THRESHOLD", "0.9"))
+    if not 0 < tolerance <= 20 or not 0 < coverage <= 1:
+        raise ValueError("Invalid text position tolerance or coverage threshold.")
     findings = []
-
-    try:
+    errors = []
+    with pymupdf.open(pdf_path) as doc, pikepdf.open(pdf_path) as pdf:
+        try:
+            findings.extend(inspect_retained_text_changes(Path(pdf_path), doc))
+        except Exception as error:
+            errors.append({"module": "retained_revisions", "error": str(error)})
         for page_number, page in enumerate(doc, start=1):
-
-            contents = page.get_contents()
-
-            empty_blocks = []
-            text_blocks = []
-
-            for xref in contents:
-
-                stream = doc.xref_stream(xref)
-
-                if not stream:
-                    continue
-
-                blocks = re.findall(
-                    rb'\bBT\b(.*?)\bET\b',
-                    stream,
-                    re.DOTALL
-                )
-
-                for block in blocks:
-
-                    matrix = re.search(
-                        rb'1\s+0\s+0\s+1\s+(-?[\d.]+)\s+(-?[\d.]+)\s+Tm',
-                        block
-                    )
-
-                    if not matrix:
-                        continue
-
-                    x = float(matrix.group(1))
-                    y = float(matrix.group(2))
-
-                    font = re.search(
-                        rb'/([A-Za-z0-9]+)\s+([\d.]+)\s+Tf',
-                        block
-                    )
-
-                    if not font:
-                        continue
-
-                    item = {
-                        "xref": xref,
-                        "x": x,
-                        "y": y,
-                        "font": font.group(1).decode(
-                            "latin-1", errors="replace"
-                        ),
-                        "size": float(font.group(2))
-                    }
-
-                    has_text = bool(
-                        re.search(rb'\bTj\b|\bTJ\b', block)
-                    )
-
-                    if has_text:
-                        text_blocks.append(item)
-                    else:
-                        empty_blocks.append(item)
-
-            for empty in empty_blocks:
-
-                for text in text_blocks:
-
-                    same_position = (
-                        abs(empty["x"] - text["x"]) < 2
-                        and abs(empty["y"] - text["y"]) < 2
-                    )
-
-                    separate_stream = (
-                        empty["xref"] != text["xref"]
-                    )
-
-                    same_font = (
-                        empty["font"] == text["font"]
-                    )
-
-                    if same_position and separate_stream and same_font:
-
-                        extracted = extract_nearby_text(
-                            page,
-                            text["x"],
-                            text["y"]
-                        )
-
-                        context_text = get_nearby_document_context(
-                            page,
-                            extracted["bbox"] if extracted else None
-                        )
-
-                        field_info = classify_document_field(context_text)
-
-                        field_info = classify_document_field(
-                            extracted["text"] if extracted else None
-                        )
-
-                        findings.append({
-                            "page": page_number,
-                            "technique": "PDF Content Stream Analysis",
-                            "finding": "possible_text_replacement",
-                            "severity": "warning",
-
-                            "original_stream": empty["xref"],
-                            "replacement_stream": text["xref"],
-
-                            "original_text": None,
-
-                            "replacement_text": (
-                                extracted["text"] if extracted else None
-                            ),
-
-                            "field_category": field_info["category"],
-                            "matched_field_keyword": field_info["matched_field_keyword"],
-                            "nearby_context": context_text,
-
-                            "position": {
-                                "x": text["x"],
-                                "y": text["y"]
-                            },
-
-                            "font": {
-                                "resource": text["font"],
-                                "size": text["size"],
-                                "extracted_font_name": (
-                                    extracted["font_name"] if extracted else None
-                                ),
-                                "extracted_font_size": (
-                                    extracted["font_size"] if extracted else None
-                                )
-                            },
-
-                            "text_bbox": (
-                                extracted["bbox"] if extracted else None
-                            ),
-
-                            "interpretation": (
-                                "An empty text block and a separate "
-                                "text-showing object were found at "
-                                "nearly identical coordinates. "
-                                "Nearby visible text was extracted "
-                                "where possible. This pattern requires "
-                                "manual review and is not proof of manipulation."
-                            )
-                        })
-
-        return {
-            "technique": "PDF Content Stream Analysis",
-            "findings": findings,
-            "status": (
-                "review_required" if findings
-                else "no_matching_pattern"
-            )
-        }
-
-    finally:
-        doc.close()
+            spans = page.get_texttrace()
+            for annotation in page.annots() or []:
+                if annotation.type[0] in (pymupdf.PDF_ANNOT_REDACT, pymupdf.PDF_ANNOT_FREE_TEXT):
+                    findings.append(_finding(
+                        page_number, "editing_annotation", annotation.rect,
+                        f"A {annotation.type[1]} annotation is present in this region. Review its purpose and visible content.",
+                        evidence_source="pdf_annotation", annotation_type=annotation.type[1],
+                    ))
+            # Text traces use unrotated, crop-relative coordinates. PyMuPDF's
+            # transformation matrix for rotated cropped pages differs, so obtain
+            # the unrotated matrix and restore rotation immediately in memory.
+            rotation = page.rotation
+            try:
+                page.set_rotation(0)
+                coordinate_matrix = page.transformation_matrix
+            finally:
+                page.set_rotation(rotation)
+            findings.extend(_covered_text_findings(page, spans, page_number, coverage))
+            try:
+                source = pdf.pages[page_number - 1]
+                for origin in _positioned_blocks(source, source.Resources):
+                    point = origin * coordinate_matrix
+                    for span in spans:
+                        if span.get("type") == 3 or not span["chars"]:
+                            continue
+                        start = pymupdf.Point(span["chars"][0][2])
+                        if abs(start.x - point.x) > tolerance or abs(start.y - point.y) > tolerance:
+                            continue
+                        bbox = list(span["bbox"])
+                        context = get_nearby_document_context(page, bbox)
+                        field_info = classify_document_field(context or _span_text(span))
+                        findings.append(_finding(
+                            page_number, "possible_text_replacement", bbox,
+                            "An empty text block and rendered text share a position. This can be an editing trace and requires review.",
+                            original_text=None, replacement_text=_span_text(span),
+                            position={"x": point.x, "y": point.y},
+                            coordinate_space="unrotated_page", nearby_context=context,
+                            **field_info,
+                        ))
+            except Exception as error:
+                errors.append({"page": page_number, "error": str(error)})
+    # The same painted span can match multiple redundant empty blocks.
+    unique = {}
+    for finding in findings:
+        key = (finding["page"], finding["finding"], tuple(round(v, 2) for v in finding["text_bbox"]))
+        unique.setdefault(key, finding)
+    return {
+        "technique": "PDF Content Stream Analysis",
+        "findings": list(unique.values()),
+        "errors": errors,
+        "status": "completed_with_errors" if errors else ("review_required" if unique else "no_matching_pattern"),
+        "rules": {"position_tolerance_points": tolerance, "minimum_character_coverage": coverage},
+        "limitations": "Inspects retained text operators and paint order. Flattened scans and edits that erase their traces can be inconclusive.",
+    }

@@ -1,6 +1,7 @@
 
 from pathlib import Path
 from uuid import uuid4
+import os
 import re
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
@@ -12,7 +13,7 @@ from app.ela_detector import generate_ela
 from app.ocr_engine import extract_document_text
 from app.authenticity.ticket_extractor import extract_ticket
 from app.authenticity.consistency_detector import analyze_consistency
-from app.manipulation_detector import analyze_manipulation
+from app.manipulation_detector import analyze_manipulation, generate_findings_summary
 from app.visual_evidence import generate_visual_evidence
 
 # New central AI forensic detector
@@ -26,26 +27,29 @@ app = FastAPI(
 )
 
 
-# Local development only. Restrict this to your deployed frontend origin later.
+# CORS origins are read from the CORS_ORIGINS environment variable so that
+# the deployed frontend URL can be set without code changes.  The default
+# keeps local development working without any env-var configuration.
+_cors_origins_env = os.getenv(
+    "CORS_ORIGINS",
+    "http://localhost:5173,http://127.0.0.1:5173"
+)
+origins = [o.strip() for o in _cors_origins_env.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "https://finora-ekoa1hcru-finora-930e.vercel.app",
-        "https://finora-5zzw4v8bq-finora-930e.vercel.app",
-        "https://finora-nu-eight.vercel.app",
-    ],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-BASE_DIR = Path(__file__).resolve().parents[2]
+BASE_DIR = Path(os.getenv("FINORA_DATA_DIR", str(Path(__file__).resolve().parents[2]))).resolve()
 
 UPLOAD_DIR = BASE_DIR / "uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-MAX_FILE_SIZE = 15 * 1024 * 1024
+MAX_FILE_SIZE = int(os.getenv("MAX_FILE_SIZE", str(15 * 1024 * 1024)))
 CHUNK_SIZE = 1024 * 1024
 
 RESULTS_DIR = BASE_DIR / "results"
@@ -267,7 +271,10 @@ def run_consistency_analysis(file_id: str):
             "file_id": file_id,
             "analysis_status": "completed",
             "document_type": ticket.get("document_type"),
+            "document_category": ticket.get("document_category"),
+            "document_label": ticket.get("document_label"),
             "issuer": ticket.get("issuer"),
+            "extracted_document": ticket,
             "extracted_ticket": ticket,
             "consistency_report": {
                 "status": validation_report["status"],
@@ -330,22 +337,54 @@ def run_manipulation_analysis(file_id: str):
 
         findings = content_analysis.get("findings", [])
 
-        if findings:
+        # Collect visual layout anomalies (e.g., text overlap, color/font deviations)
+        # to ensure visual evidence is available for all document types, not only
+        # documents with incremental content-stream replacements.
+        visual_regions = result.get("checks", {}).get("visual_regions", {})
+        visual_anomalies = []
+        for page in visual_regions.get("pages", []):
+            page_num = page.get("page_number", 1)
+            for anomaly in page.get("anomalies", []):
+                for key in ("bbox", "bbox_1", "bbox_2", "text_bbox"):
+                    if anomaly.get(key):
+                        visual_anomalies.append({
+                            "page": page_num,
+                            "type": anomaly.get("type", "visual_anomaly"),
+                            "bbox": anomaly[key],
+                            "text": anomaly.get("text", "")
+                        })
+
+        if findings or visual_anomalies:
             evidence_path = output_dir / "visual_evidence.pdf"
 
-            evidence_result = generate_visual_evidence(
-                pdf_path=file_path,
-                findings=findings,
-                output_path=evidence_path
-            )
+            try:
+                evidence_result = generate_visual_evidence(
+                    pdf_path=file_path,
+                    findings=findings,
+                    output_path=evidence_path,
+                    visual_anomalies=visual_anomalies
+                )
+            except Exception as error:
+                result["errors"].append({"module": "visual_evidence", "error": str(error)})
+                result["status"] = "completed_with_errors"
+                result["summary"] = generate_findings_summary(result["checks"], result["errors"])
+                evidence_result = {"status": "unavailable", "highlighted_regions": 0}
 
             result["visual_evidence"] = {
                 "status": evidence_result["status"],
                 "highlighted_regions": evidence_result[
                     "highlighted_regions"
                 ],
+                "content_stream_highlights": evidence_result.get(
+                    "content_stream_regions", 0
+                ),
+                "visual_anomaly_highlights": evidence_result.get(
+                    "visual_anomaly_regions", 0
+                ),
                 "visualization_url": (
                     f"/results/{file_id}/visual_evidence.pdf"
+                    if evidence_result.get("highlighted_regions", 0) > 0
+                    else None
                 )
             }
 
@@ -353,6 +392,8 @@ def run_manipulation_analysis(file_id: str):
             result["visual_evidence"] = {
                 "status": "no_regions_detected",
                 "highlighted_regions": 0,
+                "content_stream_highlights": 0,
+                "visual_anomaly_highlights": 0,
                 "visualization_url": None
             }
 

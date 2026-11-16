@@ -1,104 +1,47 @@
-
+import unittest
 from pathlib import Path
 
-from app.revision_detector import (
-    inspect_revision_markers,
-    analyze_prev_chain
-)
-
-pdf_path = Path(r"C:\Users\KIIT0001\Downloads\REVISION_2.pdf")
-
-print("\n========== REVISION MARKER ANALYSIS ==========")
-
-marker_result = inspect_revision_markers(pdf_path)
-
-for key, value in marker_result.items():
-    print(f"{key}: {value}")
+FIXTURE_PDF = Path("test_fixtures/sample.pdf")
 
 
-print("\n========== PREVIOUS REVISION CHAIN ANALYSIS ==========")
+class TestRevision(unittest.TestCase):
+    def test_revision_markers_returns_expected_keys(self):
+        """inspect_revision_markers should return marker analysis structure."""
+        try:
+            from app.revision_detector import inspect_revision_markers
+        except ImportError as err:
+            self.skipTest(f"Dependencies not installed: {err}")
 
-chain_result = analyze_prev_chain(pdf_path)
+        if not FIXTURE_PDF.exists():
+            self.skipTest(
+                f"Fixture PDF not found: {FIXTURE_PDF}. "
+                "Place a test PDF at that path to enable this test."
+            )
 
-for key, value in chain_result.items():
-    print(f"{key}: {value}")
+        result = inspect_revision_markers(FIXTURE_PDF)
+        self.assertIsInstance(result, dict)
+        self.assertIn("startxref_marker_count", result)
+        self.assertIn("eof_marker_count", result)
+        self.assertIn("is_linearized", result)
 
+    def test_prev_chain_returns_expected_keys(self):
+        """analyze_prev_chain should return cross-reference chain structure."""
+        try:
+            from app.revision_detector import analyze_prev_chain
+        except ImportError as err:
+            self.skipTest(f"Dependencies not installed: {err}")
 
-# DEBUG: Inspect raw PDF revision markers
+        if not FIXTURE_PDF.exists():
+            self.skipTest(
+                f"Fixture PDF not found: {FIXTURE_PDF}. "
+                "Place a test PDF at that path to enable this test."
+            )
 
-with open(pdf_path, "rb") as file:
-    data = file.read()
-
-print("\n========== RAW PDF MARKER DEBUG ==========")
-
-print("File size:", len(data))
-
-print("Raw startxref occurrences:", data.count(b"startxref"))
-print("Raw EOF occurrences:", data.count(b"%%EOF"))
-
-# Display every occurrence of startxref
-position = 0
-
-while True:
-    position = data.find(b"startxref", position)
-
-    if position == -1:
-        break
-
-    print(
-        "\nstartxref at:",
-        position,
-        "\nContext:",
-        repr(data[position - 40:position + 80])
-    )
-
-    position += 9
-
-# Display every occurrence of %%EOF
-position = 0
-
-while True:
-    position = data.find(b"%%EOF", position)
-
-    if position == -1:
-        break
-
-    print(
-        "\nEOF at:",
-        position,
-        "\nContext:",
-        repr(data[position - 40:position + 40])
-    )
-
-    position += 5
+        result = analyze_prev_chain(FIXTURE_PDF)
+        self.assertIsInstance(result, dict)
+        self.assertIn("xref_section_count", result)
+        self.assertIn("revision_chain", result)
 
 
-import pymupdf
-
-print("\n========== XREF OFFSET INVESTIGATION ==========")
-
-with open(pdf_path, "rb") as file:
-    data = file.read()
-
-# Inspect the beginning of the PDF
-print("\n--- FIRST 300 BYTES ---")
-print(repr(data[:300]))
-
-# Inspect the location identified by startxref
-print("\n--- BYTES AT OFFSET 116 ---")
-print(repr(data[116:116 + 500]))
-
-# Inspect the location referenced by /Prev
-print("\n--- BYTES AT OFFSET 92219 ---")
-print(repr(data[92219:92219 + 300]))
-
-# Inspect PyMuPDF's interpretation
-print("\n--- PYMUPDF TRAILER ---")
-
-doc = pymupdf.open(pdf_path)
-
-try:
-    print(doc.pdf_trailer())
-    print("\nXREF LENGTH:", doc.xref_length())
-finally:
-    doc.close()
+if __name__ == "__main__":
+    unittest.main()

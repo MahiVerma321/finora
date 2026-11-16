@@ -1,60 +1,67 @@
-import re
 from pathlib import Path
+import re
 
-import fitz
+try:
+    import fitz
+except ImportError:
+    fitz = None
 
 
-# Replace this with your modified PDF's actual filename
-pdf_path = Path("test_revisions/text_modified.pdf")
+def main():
+    if fitz is None:
+        print("fitz/pymupdf not installed; skipping fare streams test script.")
+        return
 
-doc = fitz.open(pdf_path)
-page = doc[0]
+    pdf_path = Path("test_revisions/text_modified.pdf")
+    if not pdf_path.exists():
+        print(f"File not found: {pdf_path}")
+        return
 
-print("\n========== FARE CONTENT STREAM ANALYSIS ==========")
+    doc = fitz.open(pdf_path)
+    page = doc[0]
 
-for xref in page.get_contents():
-    stream = doc.xref_stream(xref)
+    print("\n========== FARE CONTENT STREAM ANALYSIS ==========")
 
-    print(f"\nStream XREF: {xref}")
-    print(f"Stream length: {len(stream)} bytes")
-    print(f"BT operators: {len(re.findall(rb'\bBT\b', stream))}")
-    print(f"Tj operators: {len(re.findall(rb'\bTj\b', stream))}")
-    print(f"TJ operators: {len(re.findall(rb'\bTJ\b', stream))}")
+    for xref in page.get_contents():
+        stream = doc.xref_stream(xref)
 
-    blocks = re.findall(rb'\bBT\b(.*?)\bET\b', stream, re.DOTALL)
+        print(f"\nStream XREF: {xref}")
+        print(f"Stream length: {len(stream)} bytes")
+        print(f"BT operators: {len(re.findall(rb'\bBT\b', stream))}")
+        print(f"Tj operators: {len(re.findall(rb'\bTj\b', stream))}")
+        print(f"TJ operators: {len(re.findall(rb'\bTJ\b', stream))}")
 
-    for block in blocks:
-        matrix = re.search(
-            rb'1\s+0\s+0\s+1\s+(-?[\d.]+)\s+(-?[\d.]+)\s+Tm',
-            block
-        )
+        blocks = re.findall(rb'\bBT\b(.*?)\bET\b', stream, re.DOTALL)
 
-        if not matrix:
-            continue
-
-        x = float(matrix.group(1))
-        y = float(matrix.group(2))
-
-        # Inspect only the fare area.
-        if 430 <= y <= 475:
-            font = re.search(
-                rb'/(F\d+)\s+([\d.]+)\s+Tf',
+        for block in blocks:
+            matrix = re.search(
+                rb'1\s+0\s+0\s+1\s+(-?[\d.]+)\s+(-?[\d.]+)\s+Tm',
                 block
             )
 
-            font_name = font.group(1).decode() if font else "Unknown"
-            font_size = font.group(2).decode() if font else "Unknown"
+            if not matrix:
+                continue
 
-            show_count = len(
-                re.findall(rb'\bTj\b|\bTJ\b', block)
-            )
+            x = float(matrix.group(1))
+            y = float(matrix.group(2))
 
-            print(
-                f"  Text position: x={x}, y={y}, "
-                f"font={font_name}, size={font_size}, "
-                f"text operators={show_count}"
-            )
+            # Inspect only the fare area.
+            if 430 <= y <= 475:
+                font = re.search(
+                    rb'/([A-Za-z0-9]+)\s+([\d.]+)\s+Tf',
+                    block
+                )
 
-doc.close()
+                print({
+                    "stream": xref,
+                    "x": x,
+                    "y": y,
+                    "font": font.group(1).decode() if font else None,
+                    "has_text": bool(re.search(rb'\bTj\b|\bTJ\b', block))
+                })
 
-print("\n========== ANALYSIS COMPLETE ==========")
+    doc.close()
+
+
+if __name__ == "__main__":
+    main()

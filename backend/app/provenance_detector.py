@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 import pymupdf
-from c2pa import Reader
+
 
 
 # Platform names explicitly declared in C2PA information.
@@ -184,6 +184,8 @@ def analyze_provenance(file_path):
     metadata_analysis = analyze_pdf_metadata_evidence(file_path)
 
     try:
+        from c2pa import Reader
+
         with Reader(str(file_path)) as reader:
             embedded = reader.is_embedded()
 

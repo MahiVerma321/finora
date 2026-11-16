@@ -1,7 +1,10 @@
-
-from pathlib import Path
 import hashlib
-import pymupdf
+from pathlib import Path
+
+try:
+    import pymupdf
+except ImportError:
+    pymupdf = None
 
 
 BASE_DIR = Path("test_revisions")
@@ -18,6 +21,8 @@ def calculate_hash(data):
 
 
 def extract_object_inventory(file_path):
+    if pymupdf is None:
+        raise ImportError("pymupdf is not installed")
     doc = pymupdf.open(file_path)
 
     inventory = {}
@@ -58,7 +63,6 @@ def extract_object_inventory(file_path):
 
 
 def compare_inventories(old_inventory, new_inventory):
-
     old_xrefs = set(old_inventory)
     new_xrefs = set(new_inventory)
 
@@ -86,46 +90,47 @@ def compare_inventories(old_inventory, new_inventory):
     }
 
 
-inventories = {}
+def main():
+    if pymupdf is None:
+        print("pymupdf not installed; skipping comparison script.")
+        return
 
-for label, path in FILES:
-    if not path.exists():
-        print(f"Missing file: {path}")
-        continue
+    inventories = {}
 
-    print(f"\nExtracting objects: {label}")
+    for label, path in FILES:
+        if not path.exists():
+            print(f"Missing file: {path}")
+            continue
 
-    inventories[label] = extract_object_inventory(path)
+        print(f"\nExtracting objects: {label}")
+        inventories[label] = extract_object_inventory(path)
+        print(f"Objects extracted: {len(inventories[label])}")
 
-    print(
-        f"Objects extracted: {len(inventories[label])}"
-    )
+    comparisons = [
+        ("Original", "Revision 1"),
+        ("Revision 1", "Revision 2"),
+    ]
+
+    for old_label, new_label in comparisons:
+        if old_label not in inventories or new_label not in inventories:
+            continue
+
+        print("\n" + "=" * 55)
+        print(f"COMPARISON: {old_label} -> {new_label}")
+        print("=" * 55)
+
+        result = compare_inventories(
+            inventories[old_label],
+            inventories[new_label]
+        )
+
+        print("Added objects:", result["added_count"])
+        print("Removed objects:", result["removed_count"])
+        print("Changed objects:", result["changed_count"])
+        print("\nAdded xrefs:", result["added_objects"])
+        print("Removed xrefs:", result["removed_objects"])
+        print("Changed xrefs:", result["changed_objects"])
 
 
-comparisons = [
-    ("Original", "Revision 1"),
-    ("Revision 1", "Revision 2"),
-]
-
-
-for old_label, new_label in comparisons:
-
-    if old_label not in inventories or new_label not in inventories:
-        continue
-
-    print("\n" + "=" * 55)
-    print(f"COMPARISON: {old_label} -> {new_label}")
-    print("=" * 55)
-
-    result = compare_inventories(
-        inventories[old_label],
-        inventories[new_label]
-    )
-
-    print("Added objects:", result["added_count"])
-    print("Removed objects:", result["removed_count"])
-    print("Changed objects:", result["changed_count"])
-
-    print("\nAdded xrefs:", result["added_objects"])
-    print("Removed xrefs:", result["removed_objects"])
-    print("Changed xrefs:", result["changed_objects"])
+if __name__ == "__main__":
+    main()

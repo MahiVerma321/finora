@@ -1,32 +1,34 @@
-
+import unittest
 from pathlib import Path
-from pprint import pprint
 
-from app.pdf_structure_detector import analyze_pdf_structure
+FIXTURE_PDF = Path("test_fixtures/sample.pdf")
 
-PDF_PATH = Path("C:\\Users\\KIIT0001\\Downloads\\document-forensics-day1-starter\\document-forensics-starter\\uploads\\588745c9-3087-480b-b66b-cdd7c47c4825.pdf")
 
-result = analyze_pdf_structure(PDF_PATH)
+class TestPdfStructure(unittest.TestCase):
+    def test_pdf_structure_returns_expected_keys(self):
+        """analyze_pdf_structure should return a dict with documented keys."""
+        try:
+            from app.pdf_structure_detector import analyze_pdf_structure
+        except ImportError as err:
+            self.skipTest(f"Dependencies not installed: {err}")
 
-print("\n========== PDF STRUCTURAL ANALYSIS ==========")
+        if not FIXTURE_PDF.exists():
+            self.skipTest(
+                f"Fixture PDF not found: {FIXTURE_PDF}. "
+                "Place a test PDF at that path to enable this test."
+            )
 
-print("Technique:", result["technique"])
-print("Pages:", result["page_count"])
-print("Encrypted:", result["is_encrypted"])
+        result = analyze_pdf_structure(FIXTURE_PDF)
+        self.assertIsInstance(result, dict)
+        self.assertIn("technique", result)
+        self.assertIn("page_count", result)
+        self.assertIn("is_encrypted", result)
+        self.assertIn("trailer_analysis", result)
+        self.assertIn("object_analysis", result)
+        self.assertIn("page_analysis", result)
+        self.assertIn("signature_analysis", result)
+        self.assertIn("annotation_object_analysis", result)
 
-print("\n--- TRAILER ANALYSIS ---")
-pprint(result["trailer_analysis"])
 
-print("\n--- OBJECT ANALYSIS ---")
-pprint(result["object_analysis"])
-
-print("\n--- PAGE ANALYSIS ---")
-pprint(result["page_analysis"])
-
-print("\n--- SIGNATURE ANALYSIS ---")
-pprint(result["signature_analysis"])
-
-print("\n--- ANNOTATION OBJECT ANALYSIS ---")
-pprint(result["annotation_object_analysis"])
-
-print("\n=============================================")
+if __name__ == "__main__":
+    unittest.main()

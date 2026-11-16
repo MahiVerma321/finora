@@ -1,4 +1,5 @@
 FIELD_ALIASES = {
+    # --- Transport & Route Fields ---
     "origin": [
         "origin",
         "from",
@@ -7,6 +8,8 @@ FIELD_ALIASES = {
         "boarding at",
         "source",
         "departure city",
+        "departure airport",
+        "from station",
     ],
 
     "destination": [
@@ -16,6 +19,8 @@ FIELD_ALIASES = {
         "arrival station",
         "arrival city",
         "drop point",
+        "arrival airport",
+        "to station",
     ],
 
     "journey_date": [
@@ -30,9 +35,13 @@ FIELD_ALIASES = {
     "departure_time": [
         "departure time",
         "departure",
-        "boarding time",
         "reporting time",
         "departure hrs",
+    ],
+
+    "boarding_time": [
+        "boarding time",
+        "gate closes",
     ],
 
     "arrival_time": [
@@ -76,5 +85,156 @@ FIELD_ALIASES = {
         "fare",
         "amount paid",
         "total amount",
+    ],
+
+    "pnr": [
+        "pnr",
+        "pnr number",
+        "pnr no",
+        "booking id",
+        "booking reference",
+        "e-ticket no",
+        "ticket no",
+        "reservation code",
+    ],
+
+    # --- Commercial & Invoice Fields ---
+    "invoice_number": [
+        "invoice number",
+        "invoice no",
+        "invoice #",
+        "inv no",
+        "inv #",
+        "bill no",
+        "bill number",
+        "tax invoice no",
+    ],
+
+    "invoice_date": [
+        "invoice date",
+        "bill date",
+        "date of invoice",
+        "date of issue",
+        "issue date",
+        "billing date",
+    ],
+
+    "due_date": [
+        "due date",
+        "payment due date",
+        "pay by",
+        "due on",
+        "payment due",
+        "payment deadline",
+    ],
+
+    "total_amount": [
+        "total amount",
+        "grand total",
+        "total",
+        "net amount",
+        "total due",
+        "amount payable",
+        "total payable",
+        "amount paid",
+        "balance due",
+    ],
+
+    "subtotal": [
+        "subtotal",
+        "sub total",
+        "taxable amount",
+        "base amount",
+        "amount before tax",
+        "net total",
+    ],
+
+    "tax_amount": [
+        "tax amount",
+        "total tax",
+        "vat",
+        "gst",
+        "cgst",
+        "sgst",
+        "sales tax",
+        "tax",
+    ],
+
+    "customer_name": [
+        "customer name",
+        "client name",
+        "billed to",
+        "bill to",
+        "invoice to",
+        "sold to",
+        "buyer",
+    ],
+
+    "issuer": [
+        "issued by",
+        "billed by",
+        "vendor",
+        "seller",
+        "merchant",
+        "provider",
+        "operator",
+        "airline",
+        "company name",
+    ],
+
+    # --- Financial & Banking Fields ---
+    "account_number": [
+        "account number",
+        "account no",
+        "a/c no",
+        "acct no",
+        "bank account",
+    ],
+
+    "receipt_number": [
+        "receipt number",
+        "receipt no",
+        "rec no",
+        "receipt #",
+        "voucher no",
+        "transaction id",
+        "txn id",
+        "ref no",
+        "reference number",
+    ],
+
+    "receipt_date": [
+        "receipt date",
+        "date of receipt",
+        "transaction date",
+        "paid date",
+        "payment date",
+    ],
+
+    "payment_method": [
+        "payment method",
+        "payment mode",
+        "paid via",
+        "payment type",
+        "card no",
+        "mode of payment",
+    ],
+
+    # --- Certificate & Official Fields ---
+    "certificate_id": [
+        "certificate id",
+        "certificate no",
+        "credential id",
+        "registration no",
+        "cert no",
+    ],
+
+    "recipient_name": [
+        "awarded to",
+        "certifies that",
+        "presented to",
+        "this is to certify that",
+        "student name",
+        "holder name",
     ],
 }

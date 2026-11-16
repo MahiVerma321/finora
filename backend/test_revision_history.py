@@ -1,6 +1,9 @@
-
 from pathlib import Path
-import pymupdf
+
+try:
+    import pymupdf
+except ImportError:
+    pymupdf = None
 
 from app.revision_detector import (
     inspect_revision_markers,
@@ -17,6 +20,8 @@ FILES = [
 
 
 def inspect_pdf(path):
+    if pymupdf is None:
+        raise ImportError("pymupdf not installed")
     doc = pymupdf.open(path)
 
     try:
@@ -24,9 +29,12 @@ def inspect_pdf(path):
             "file_size": path.stat().st_size,
             "page_count": len(doc),
             "xref_length": doc.xref_length(),
-            "is_linearized": bool(__import__("re").search(rb"/Linearized\s+[\d.]+",path.read_bytes()[:1024]
-    )
-),
+            "is_linearized": bool(
+                __import__("re").search(
+                    rb"/Linearized\s+[\d.]+",
+                    path.read_bytes()[:1024]
+                )
+            ),
             "annotations": [],
             "text_length": 0,
         }
@@ -50,28 +58,37 @@ def inspect_pdf(path):
         doc.close()
 
 
-for label, path in FILES:
-    print(f"\n========== {label.upper()} ==========")
+def main():
+    if pymupdf is None:
+        print("pymupdf not installed; skipping revision history script.")
+        return
 
-    if not path.exists():
-        print("ERROR: File not found:", path)
-        continue
+    for label, path in FILES:
+        print(f"\n========== {label.upper()} ==========")
 
-    print("FILE:", path.name)
+        if not path.exists():
+            print("ERROR: File not found:", path)
+            continue
 
-    structural = inspect_pdf(path)
+        print("FILE:", path.name)
 
-    for key, value in structural.items():
-        print(f"{key}: {value}")
+        structural = inspect_pdf(path)
 
-    print("\n--- REVISION MARKERS ---")
-    markers = inspect_revision_markers(path)
+        for key, value in structural.items():
+            print(f"{key}: {value}")
 
-    for key, value in markers.items():
-        print(f"{key}: {value}")
+        print("\n--- REVISION MARKERS ---")
+        markers = inspect_revision_markers(path)
 
-    print("\n--- PREVIOUS REVISION CHAIN ---")
-    chain = analyze_prev_chain(path)
+        for key, value in markers.items():
+            print(f"{key}: {value}")
 
-    for key, value in chain.items():
-        print(f"{key}: {value}")
+        print("\n--- PREVIOUS REVISION CHAIN ---")
+        chain = analyze_prev_chain(path)
+
+        for key, value in chain.items():
+            print(f"{key}: {value}")
+
+
+if __name__ == "__main__":
+    main()

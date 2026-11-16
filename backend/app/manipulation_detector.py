@@ -46,7 +46,7 @@ def generate_findings_summary(checks, errors=None):
         })
 
     for check in metadata.get("timestamp_checks", []):
-        if check.get("status") == "failed":
+        if check.get("status") in ("failed", "warning"):
             findings.append({
                 "category": "metadata",
                 "severity": "review",
@@ -68,6 +68,7 @@ def generate_findings_summary(checks, errors=None):
 
         anomaly_count = (
             font_count + color_count + overlap_count + text_image_count
+            + page.get("positioning_anomaly_count", 0)
         )
 
         if anomaly_count > 0:
@@ -142,13 +143,7 @@ def generate_findings_summary(checks, errors=None):
             "category": "content_stream",
             "severity": item.get("severity", "warning"),
             "page_number": item.get("page"),
-            "message": (
-                "Possible PDF text replacement pattern detected: "
-                "an empty text block and a separate text-showing "
-                "object occur at nearly identical coordinates. "
-                "This requires manual review and is not proof "
-                "of document manipulation."
-            ),
+            "message": item.get("interpretation", "PDF editing indicator requires review."),
             "details": {
                 "finding": item.get("finding"),
                 "original_stream": item.get("original_stream"),
@@ -293,6 +288,8 @@ def analyze_manipulation(file_path: Path, output_dir: Path):
     try:
         content_stream_result = analyze_content_streams(file_path)
         results["checks"]["content_stream_analysis"] = content_stream_result
+        for error in content_stream_result.get("errors", []):
+            results["errors"].append({"module": "content_stream_analysis", "error": str(error)})
 
         # Keep this top-level key for compatibility with the existing API.
         results["content_stream_analysis"] = content_stream_result

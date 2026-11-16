@@ -1,5 +1,3 @@
-
-
 import React, { useState } from "react";
 
 import Header from "./components/Header";
@@ -8,6 +6,7 @@ import UploadSection from "./components/UploadSection";
 
 import ManipulationReport from "./reports/ManipulationReport";
 import ProvenanceReport from "./reports/ProvenanceReport";
+import ConsistencyReport from "./reports/ConsistencyReport";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
@@ -17,14 +16,17 @@ export default function App() {
 
   const [analysis, setAnalysis] = useState(null);
   const [aiAnalysis, setAiAnalysis] = useState(null);
+  const [consistencyData, setConsistencyData] = useState(null);
 
   const [error, setError] = useState("");
   const [analysisError, setAnalysisError] = useState("");
   const [aiAnalysisError, setAiAnalysisError] = useState("");
+  const [consistencyError, setConsistencyError] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [aiAnalyzing, setAiAnalyzing] = useState(false);
+  const [consistencyAnalyzing, setConsistencyAnalyzing] = useState(false);
 
   const isPdf =
     result?.type?.toLowerCase() === "pdf" ||
@@ -35,8 +37,10 @@ export default function App() {
   function resetAnalyses() {
     setAnalysis(null);
     setAiAnalysis(null);
+    setConsistencyData(null);
     setAnalysisError("");
     setAiAnalysisError("");
+    setConsistencyError("");
   }
 
   async function handleUpload(event) {
@@ -159,6 +163,39 @@ export default function App() {
     }
   }
 
+  async function handleConsistencyAnalysis() {
+    if (!result?.file_id) {
+      setConsistencyError("Please upload a PDF first.");
+      return;
+    }
+
+    setConsistencyAnalyzing(true);
+    setConsistencyError("");
+    setConsistencyData(null);
+
+    try {
+      const response = await fetch(
+        `${API_URL}/api/consistency/${result.file_id}`
+      );
+
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          payload.detail || "Consistency analysis failed."
+        );
+      }
+
+      setConsistencyData(payload);
+    } catch (err) {
+      setConsistencyError(
+        err.message || "Unable to complete consistency analysis."
+      );
+    } finally {
+      setConsistencyAnalyzing(false);
+    }
+  }
+
   return (
     <main className="page">
       <Header />
@@ -174,22 +211,27 @@ export default function App() {
         loading={loading}
         analyzing={analyzing}
         aiAnalyzing={aiAnalyzing}
+        consistencyAnalyzing={consistencyAnalyzing}
         error={error}
         analysisError={analysisError}
         aiAnalysisError={aiAnalysisError}
+        consistencyError={consistencyError}
         handleUpload={handleUpload}
         handleManipulationAnalysis={handleManipulationAnalysis}
         handleAIContentAnalysis={handleAIContentAnalysis}
+        handleConsistencyAnalysis={handleConsistencyAnalysis}
         resetAnalyses={resetAnalyses}
         setError={setError}
       />
 
-      <ManipulationReport analysis={analysis} />
+      <ManipulationReport key={result?.file_id || "empty"} analysis={analysis} />
 
       <ProvenanceReport aiAnalysis={aiAnalysis} />
 
+      <ConsistencyReport consistencyData={consistencyData} />
+
       <footer>
-        DIGITAL DOCUMENT FORENSICS · PDF FORENSIC SCREENING · PROTOTYPE
+        DIGITAL DOCUMENT FORENSICS · SCHEMA-DRIVEN SCREENING · PROTOTYPE
       </footer>
     </main>
   );

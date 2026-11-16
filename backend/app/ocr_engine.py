@@ -1,17 +1,23 @@
-
 from functools import lru_cache
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
 import pymupdf
-from paddleocr import PaddleOCR
+
+try:
+    from paddleocr import PaddleOCR
+except ImportError:
+    PaddleOCR = None
 
 
 @lru_cache(maxsize=1)
 def get_ocr_engine():
     """
-    Load the pretrained OCR model once.
+    Load the pretrained OCR model once if available.
     """
+    if PaddleOCR is None:
+        return None
+
     return PaddleOCR(
         use_doc_orientation_classify=False,
         use_doc_unwarping=False,
@@ -57,6 +63,9 @@ def read_result(result):
 
 def extract_from_image(image_path: Path):
     engine = get_ocr_engine()
+    if engine is None:
+        return []
+
     results = engine.predict(str(image_path))
 
     all_lines = []
@@ -72,10 +81,44 @@ def extract_from_image(image_path: Path):
     return all_lines
 
 
-def extract_from_pdf(pdf_path: Path):
+def extract_from_pdf_pymupdf(pdf_path: Path):
+    """
+    Fallback text and line extraction using PyMuPDF when PaddleOCR
+    is not installed in the environment (e.g., Python 3.13+).
+    """
     all_lines = []
+    doc = pymupdf.open(pdf_path)
 
+    try:
+        for page_index, page in enumerate(doc, start=1):
+            text_dict = page.get_text("dict")
+            for block in text_dict.get("blocks", []):
+                if block.get("type") != 0:
+                    continue
+                for line in block.get("lines", []):
+                    line_text = "".join(
+                        span.get("text", "") for span in line.get("spans", [])
+                    ).strip()
+                    if not line_text:
+                        continue
+                    all_lines.append({
+                        "text": line_text,
+                        "confidence": 1.0,
+                        "box": [round(val, 2) for val in line.get("bbox", [])],
+                        "page": page_index
+                    })
+    finally:
+        doc.close()
+
+    return all_lines
+
+
+def extract_from_pdf(pdf_path: Path):
     engine = get_ocr_engine()
+    if engine is None:
+        return extract_from_pdf_pymupdf(pdf_path)
+
+    all_lines = []
 
     with TemporaryDirectory() as temp_dir:
         temp_dir = Path(temp_dir)
@@ -122,8 +165,14 @@ def extract_document_text(file_path: Path):
         line["text"] for line in lines
     )
 
+    technique = (
+        "PaddleOCR PP-OCRv6"
+        if PaddleOCR is not None
+        else "PyMuPDF native text extraction (PaddleOCR optional)"
+    )
+
     return {
-        "technique": "PaddleOCR PP-OCRv6",
+        "technique": technique,
         "line_count": len(lines),
         "full_text": full_text,
         "lines": lines

@@ -1,65 +1,73 @@
-import re
 from pathlib import Path
+import re
 
-import pymupdf
+try:
+    import pymupdf
+except ImportError:
+    pymupdf = None
 
 
-pdf_path = Path("test_revisions/text_modified.pdf")
+def main():
+    if pymupdf is None:
+        print("pymupdf not installed; skipping fare replacement test script.")
+        return
 
-doc = pymupdf.open(pdf_path)
-page = doc[0]
+    pdf_path = Path("test_revisions/text_modified.pdf")
+    if not pdf_path.exists():
+        print(f"File not found: {pdf_path}")
+        return
 
-print("\n========== FARE REPLACEMENT INVESTIGATION ==========")
+    doc = pymupdf.open(pdf_path)
+    page = doc[0]
 
-for xref in page.get_contents():
+    print("\n========== FARE REPLACEMENT INVESTIGATION ==========")
 
-    stream = doc.xref_stream(xref)
+    for xref in page.get_contents():
+        stream = doc.xref_stream(xref)
+        print(f"\n--- CONTENT STREAM {xref} ---")
 
-    print(f"\n--- CONTENT STREAM {xref} ---")
-
-    blocks = re.findall(
-        rb'\bBT\b(.*?)\bET\b',
-        stream,
-        re.DOTALL
-    )
-
-    for block in blocks:
-
-        matrix = re.search(
-            rb'1\s+0\s+0\s+1\s+(-?[\d.]+)\s+(-?[\d.]+)\s+Tm',
-            block
+        blocks = re.findall(
+            rb'\bBT\b(.*?)\bET\b',
+            stream,
+            re.DOTALL
         )
 
-        if not matrix:
-            continue
-
-        x = float(matrix.group(1))
-        y = float(matrix.group(2))
-
-        if abs(x - 271) < 2 and abs(y - 448) < 2:
-
-            print(f"Position: x={x}, y={y}")
-
-            print(
-                "Text-showing operators:",
-                len(re.findall(rb'\bTj\b|\bTJ\b', block))
-            )
-
-            print("PDF operators:")
-
-            operators = re.findall(
-                rb'/[A-Za-z0-9]+\s+[\d.]+\s+Tf'
-                rb'|[-\d.]+\s+[-\d.]+\s+Td'
-                rb'|[-\d.]+\s+[-\d.]+\s+[-\d.]+\s+[-\d.]+\s+[-\d.]+\s+[-\d.]+\s+Tm'
-                rb'|Tj|TJ|Tr|Tc|Tw|Tz|Ts',
+        for block in blocks:
+            matrix = re.search(
+                rb'1\s+0\s+0\s+1\s+(-?[\d.]+)\s+(-?[\d.]+)\s+Tm',
                 block
             )
 
-            for operator in operators:
-                print(" ", operator.decode("latin-1"))
+            if not matrix:
+                continue
 
-            print("Raw block length:", len(block), "bytes")
+            x = float(matrix.group(1))
+            y = float(matrix.group(2))
 
-doc.close()
+            if abs(x - 271) < 2 and abs(y - 448) < 2:
+                print(f"Position: x={x}, y={y}")
+                print(
+                    "Text-showing operators:",
+                    len(re.findall(rb'\bTj\b|\bTJ\b', block))
+                )
+                print("PDF operators:")
 
-print("\n========== INVESTIGATION COMPLETE ==========")
+                operators = re.findall(
+                    rb'/[A-Za-z0-9]+\s+[\d.]+\s+Tf'
+                    rb'|[-\d.]+\s+[-\d.]+\s+Td'
+                    rb'|[-\d.]+\s+[-\d.]+\s+[-\d.]+\s+[-\d.]+\s+[-\d.]+\s+[-\d.]+\s+Tm'
+                    rb'|Tj|TJ|Tr|Tc|Tw|Tz|Ts',
+                    block
+                )
+
+                for operator in operators:
+                    print(" ", operator.decode("latin-1"))
+
+                print("Raw block length:", len(block), "bytes")
+
+    doc.close()
+    print("\n========== INVESTIGATION COMPLETE ==========")
+
+
+if __name__ == "__main__":
+    main()

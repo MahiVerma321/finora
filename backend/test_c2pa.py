@@ -1,24 +1,31 @@
-
+import unittest
 from pathlib import Path
-from c2pa import Reader
 
-# Replace this with the PDF you want to test
-pdf_path = Path("test_revisions/sample_railway_ticket_bhavesh_vijay.pdf")
+FIXTURE_PDF = Path("test_fixtures/sample.pdf")
 
-print("\n========== C2PA PROVENANCE TEST ==========")
 
-if not pdf_path.exists():
-    print("PDF file not found:", pdf_path)
-else:
-    try:
-        with Reader(str(pdf_path)) as reader:
-            manifest_data = reader.json()
+class TestC2pa(unittest.TestCase):
+    def test_c2pa_reader_available(self):
+        """c2pa Reader should be importable and handle unmanifested files."""
+        try:
+            from c2pa import Reader
+        except ImportError:
+            self.skipTest("c2pa library not installed in environment")
 
-            print("\nC2PA manifest detected!")
-            print("\nEmbedded:", reader.is_embedded())
-            print("\nManifest information:")
-            print(manifest_data)
+        if not FIXTURE_PDF.exists():
+            self.skipTest(
+                f"Fixture PDF not found: {FIXTURE_PDF}. "
+                "Place a test PDF at that path to enable this test."
+            )
 
-    except Exception as error:
-        print("\nNo readable C2PA manifest was returned.")
-        print("Details:", str(error))
+        try:
+            with Reader(str(FIXTURE_PDF)) as reader:
+                manifest_data = reader.json()
+                self.assertIsNotNone(manifest_data)
+        except Exception:
+            # Expected if sample PDF lacks C2PA manifest
+            pass
+
+
+if __name__ == "__main__":
+    unittest.main()

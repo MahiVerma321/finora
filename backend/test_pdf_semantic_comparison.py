@@ -1,10 +1,13 @@
-
-from pathlib import Path
+import difflib
 import hashlib
 import json
+from pathlib import Path
 import re
-import pymupdf
-import difflib
+
+try:
+    import pymupdf
+except ImportError:
+    pymupdf = None
 
 BASE_DIR = Path("test_revisions")
 
@@ -25,6 +28,8 @@ def normalize_text(text):
 
 
 def extract_semantic_inventory(file_path):
+    if pymupdf is None:
+        raise ImportError("pymupdf not installed")
 
     doc = pymupdf.open(file_path)
 
@@ -48,12 +53,10 @@ def extract_semantic_inventory(file_path):
                 "links": []
             }
 
-            # Extract annotations
             annotations = page.annots()
 
             if annotations:
                 for annot in annotations:
-
                     annotation_data = {
                         "type": annot.type[1],
                         "content": annot.info.get("content", ""),
@@ -62,31 +65,18 @@ def extract_semantic_inventory(file_path):
                             for value in annot.rect
                         ]
                     }
+                    page_data["annotations"].append(annotation_data)
 
-                    page_data["annotations"].append(
-                        annotation_data
-                    )
-
-            # Extract image fingerprints
             for image in page.get_images(full=True):
-
                 xref = image[0]
-
                 try:
                     extracted = doc.extract_image(xref)
-
-                    image_hash = make_hash(
-                        extracted["image"]
-                    )
-
+                    image_hash = make_hash(extracted["image"])
                     page_data["images"].append(image_hash)
-
                 except Exception:
                     continue
 
-            # Extract hyperlinks
             for link in page.get_links():
-
                 page_data["links"].append({
                     "kind": link.get("kind"),
                     "uri": link.get("uri"),
@@ -104,8 +94,8 @@ def extract_semantic_inventory(file_path):
     finally:
         doc.close()
 
-def get_text_difference(old_text, new_text):
 
+def get_text_difference(old_text, new_text):
     old_words = old_text.split()
     new_words = new_text.split()
 
@@ -118,7 +108,6 @@ def get_text_difference(old_text, new_text):
     changes = []
 
     for tag, i1, i2, j1, j2 in matcher.get_opcodes():
-
         if tag == "equal":
             continue
 
@@ -130,8 +119,8 @@ def get_text_difference(old_text, new_text):
 
     return changes
 
-def compare_semantics(old, new):
 
+def compare_semantics(old, new):
     results = {
         "text_changes": [],
         "annotation_changes": [],
@@ -140,23 +129,15 @@ def compare_semantics(old, new):
         "page_dimension_changes": []
     }
 
-    if old["page_count"] != new["page_count"]:
-        results["page_count_changed"] = {
-            "old": old["page_count"],
-            "new": new["page_count"]
-        }
-
     for index, (old_page, new_page) in enumerate(
         zip(old["pages"], new["pages"]),
         start=1
     ):
-
         if old_page["text"] != new_page["text"]:
             differences = get_text_difference(
                 old_page["text"],
                 new_page["text"]
             )
-
             results["text_changes"].append({
                 "page": index,
                 "differences": differences
@@ -181,40 +162,42 @@ def compare_semantics(old, new):
     return results
 
 
-inventories = {}
+def main():
+    if pymupdf is None:
+        print("pymupdf not installed; skipping semantic comparison script.")
+        return
 
-for label, path in FILES:
+    inventories = {}
 
-    if not path.exists():
-        print(f"Missing file: {path}")
-        continue
+    for label, path in FILES:
+        if not path.exists():
+            print(f"Missing file: {path}")
+            continue
 
-    print(f"\nAnalyzing: {label}")
+        print(f"\nAnalyzing: {label}")
+        inventories[label] = extract_semantic_inventory(path)
 
-    inventories[label] = extract_semantic_inventory(path)
+    comparisons = [
+        ("Original", "Revision 1"),
+        ("Revision 1", "Revision 2"),
+        ("Original", "Text Modification")
+    ]
+
+    for old_label, new_label in comparisons:
+        if old_label not in inventories or new_label not in inventories:
+            continue
+
+        print("\n" + "=" * 55)
+        print(f"{old_label} -> {new_label}")
+        print("=" * 55)
+
+        result = compare_semantics(
+            inventories[old_label],
+            inventories[new_label]
+        )
+
+        print(json.dumps(result, indent=4, ensure_ascii=False))
 
 
-comparisons = [
-    ("Original", "Revision 1"),
-    ("Revision 1", "Revision 2"),
-    ("Original", "Text Modification")
-]
-
-
-for old_label, new_label in comparisons:
-
-    if old_label not in inventories or new_label not in inventories:
-        continue
-
-    print("\n" + "=" * 55)
-    print(f"{old_label} -> {new_label}")
-    print("=" * 55)
-
-    result = compare_semantics(
-        inventories[old_label],
-        inventories[new_label]
-    )
-
-    print(
-        json.dumps(result, indent=4, ensure_ascii=False)
-    )
+if __name__ == "__main__":
+    main()

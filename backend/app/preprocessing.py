@@ -1,8 +1,6 @@
 
-import io
 from pathlib import Path
 
-import cv2
 import pymupdf
 import numpy as np
 from PIL import Image, ExifTags
@@ -48,6 +46,7 @@ def analyze_pdf(file_path: Path):
 
 def analyze_image(file_path: Path):
     """Extract image metadata and basic image properties."""
+    import cv2
 
     with Image.open(file_path) as image:
         image_format = image.format

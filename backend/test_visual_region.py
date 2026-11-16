@@ -1,30 +1,32 @@
+import unittest
 from pathlib import Path
-from app.visual_region_detector import analyze_visual_regions
 
-# Change this to the PDF you want to test
-PDF_PATH = Path(r"C:\Users\KIIT0001\Downloads\document-forensics-day1-starter\document-forensics-starter\uploads\eae769ea-582e-4139-81d1-333472bd94bb.pdf")
+FIXTURE_PDF = Path("test_fixtures/sample.pdf")
 
-result = analyze_visual_regions(PDF_PATH)
 
-print("\n========== VISUAL REGION ANALYSIS ==========")
+class TestVisualRegion(unittest.TestCase):
+    def test_visual_regions_returns_expected_keys(self):
+        """analyze_visual_regions should return a dict with documented keys."""
+        try:
+            from app.visual_region_detector import analyze_visual_regions
+        except ImportError as err:
+            self.skipTest(f"Dependencies not installed: {err}")
 
-print("Technique:", result["technique"])
-print("Total pages:", result["page_count"])
+        if not FIXTURE_PDF.exists():
+            self.skipTest(
+                f"Fixture PDF not found: {FIXTURE_PDF}. "
+                "Place a test PDF at that path to enable this test."
+            )
 
-for page in result["pages"]:
+        result = analyze_visual_regions(FIXTURE_PDF)
+        self.assertIsInstance(result, dict)
+        self.assertIn("technique", result)
+        self.assertIn("page_count", result)
+        self.assertIn("pages", result)
+        for page in result["pages"]:
+            self.assertIn("page_number", page)
+            self.assertIn("anomalies", page)
 
-    print(f"\nPAGE: {page['page_number']}")
 
-    print("Text spans:", page["text_span_count"])
-    print("Font anomalies:", page["font_anomaly_count"])
-    print("Colour anomalies:", page["color_anomaly_count"])
-    print("Text overlaps:", page["overlap_count"])
-    print("Images:", page["image_count"])
-    print("Text-image overlaps:", page["text_image_overlap_count"])
-
-    if page["anomalies"]:
-        print("\nAnomalies:")
-        for anomaly in page["anomalies"]:
-            print(anomaly)
-
-print("\n============================================")
+if __name__ == "__main__":
+    unittest.main()
