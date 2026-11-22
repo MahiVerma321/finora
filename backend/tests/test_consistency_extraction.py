@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unittest
 from unittest.mock import Mock, patch
+from uuid import uuid4
 
 import pymupdf
 from fastapi.testclient import TestClient
@@ -39,6 +40,7 @@ class ConsistencyExtractionTests(unittest.TestCase):
         self.assertIn("INV-123", result["full_text"])
         self.assertEqual(result["line_count"], 3)
         self.assertEqual([line["page"] for line in result["lines"]], [1, 1, 2])
+        self.assertTrue(all(line["confidence"] is None for line in result["lines"]))
 
     def test_module_import_does_not_import_paddle(self):
         program = (
@@ -232,6 +234,31 @@ class ConsistencyAPITests(unittest.TestCase):
         financial = next(check for check in report["checks"] if check["name"] == "financial_reconciliation")
         self.assertEqual(financial["status"], "warning")
         self.assertEqual(response.json()["overall_status"], "incomplete")
+
+    def test_same_filename_different_contents_produce_independent_api_results(self):
+        outcomes = []
+        file_ids = []
+        with patch.object(ocr_engine, "_get_paddleocr_class", side_effect=AssertionError("Paddle loaded")):
+            for scenario in ("valid", "wrong_total", "wrong_date"):
+                reference = uuid4().hex[:12]
+                subtotal = int(reference[:4], 16) + 1
+                tax = 37
+                total = subtotal + tax if scenario != "wrong_total" else subtotal * 10
+                due_date = "20-Apr-2027" if scenario != "wrong_date" else "20-Feb-2027"
+                file_id = self.upload(
+                    f"Acme {reference}\nTAX INVOICE\nInvoice Number: {reference}\n"
+                    f"Invoice Date: 20-Mar-2027\nPayment Due Date: {due_date}\n"
+                    f"Subtotal: {subtotal}\nTax Amount: {tax}\nGrand Total: {total}"
+                )
+                response = self.client.get(f"/api/consistency/{file_id}")
+                self.assertEqual(response.status_code, 200, response.text)
+                result = response.json()
+                self.assertEqual(result["extracted_document"]["fields"]["invoice_number"]["value"], reference)
+                self.assertEqual(result["issuer"], f"Acme {reference}")
+                outcomes.append(result["overall_status"])
+                file_ids.append(file_id)
+        self.assertEqual(outcomes, ["passed", "incomplete", "review_required"])
+        self.assertEqual(len(set(file_ids)), 3)
 
 
 if __name__ == "__main__":

@@ -2,31 +2,7 @@
 import re
 from copy import deepcopy
 
-from app.authenticity.field_validator import (
-    validate_date,
-    validate_location,
-    validate_seat,
-    validate_time,
-    validate_price,
-    validate_flight_number,
-    validate_train_number,
-)
-
-
-FIELD_VALIDATORS = {
-    "journey_date": validate_date,
-    "departure_date": validate_date,
-    "arrival_date": validate_date,
-    "departure_time": validate_time,
-    "boarding_time": validate_time,
-    "arrival_time": validate_time,
-    "ticket_price": validate_price,
-    "flight_number": validate_flight_number,
-    "train_number": validate_train_number,
-    "origin": validate_location,
-    "destination": validate_location,
-    "seat": validate_seat,
-}
+from app.authenticity.field_validator import FIELD_VALIDATORS
 
 
 def normalize_value(value):
@@ -90,7 +66,6 @@ def merge_fields(specific_fields, generic_fields):
         specific = specific_fields.get(field_name)
         generic = generic_fields.get(field_name)
 
-        # Generic extractor found a new field.
         # Generic extractor found a new field.
         if specific is None:
 

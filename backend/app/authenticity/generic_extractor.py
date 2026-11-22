@@ -63,7 +63,7 @@ def validate_generic_candidate(field_name, value):
     if validator is None:
         return True
 
-    status, message = validator(value)
+    status, _ = validator(value)
 
     return status == "passed"
 
@@ -97,15 +97,11 @@ def extract_generic_fields(lines):
         if not text:
             continue
 
-        normalized_line = normalize_text(text)
-
         for field_name, alias in alias_entries:
 
             # Do not overwrite an existing extraction.
             if field_name in extracted_fields:
                 continue
-
-            normalized_alias = normalize_text(alias)
 
             # Match labels at the beginning of the line.
             label_pattern = re.compile(

@@ -1,4 +1,3 @@
-import gc
 import os
 from functools import lru_cache
 from pathlib import Path
@@ -107,36 +106,6 @@ def extract_from_image(image_path: Path):
 
     return all_lines
 
-def extract_from_pdf_pymupdf(pdf_path: Path):
-    """
-    Fallback text and line extraction using PyMuPDF when PaddleOCR
-    is not installed in the environment (e.g., Python 3.13+).
-    """
-    all_lines = []
-    doc = pymupdf.open(pdf_path)
-
-    try:
-        for page_index, page in enumerate(doc, start=1):
-            text_dict = page.get_text("dict")
-            for block in text_dict.get("blocks", []):
-                if block.get("type") != 0:
-                    continue
-                for line in block.get("lines", []):
-                    line_text = "".join(
-                        span.get("text", "") for span in line.get("spans", [])
-                    ).strip()
-                    if not line_text:
-                        continue
-                    all_lines.append({
-                        "text": line_text,
-                        "confidence": 1.0,
-                        "box": [round(val, 2) for val in line.get("bbox", [])],
-                        "page": page_index
-                    })
-    finally:
-        doc.close()
-
-    return all_lines
 
 
 
@@ -146,7 +115,12 @@ def extract_from_pdf(pdf_path: Path):
     Release temporary image and OCR objects to reduce peak memory.
     """
     if _get_paddleocr_class() is None:
-        return extract_from_pdf_pymupdf(pdf_path)
+        with pymupdf.open(pdf_path) as document:
+            return [
+                line
+                for page_number, page in enumerate(document, start=1)
+                for line in _native_page_lines(page, page_number)
+            ]
 
     all_lines = []
 
@@ -169,18 +143,13 @@ def extract_from_pdf(pdf_path: Path):
                 del pixmap
                 del page
 
-                results = run_ocr(image_path)
-
-                for result in results:
-                    lines = read_result(result)
-
+                try:
+                    lines = extract_from_image(image_path)
                     for line in lines:
                         line["page"] = page_index + 1
-
                     all_lines.extend(lines)
-
-                del results
-                gc.collect()
+                finally:
+                    image_path.unlink(missing_ok=True)
 
         finally:
             document.close()
@@ -234,7 +203,8 @@ def _native_page_lines(page, page_number):
             x0, y0, x1, y1 = (round(value, 2) for value in line["bbox"])
             lines.append({
                 "text": text,
-                "confidence": 1.0,
+                # Native extraction has no statistical recognition score.
+                "confidence": None,
                 "box": [[x0, y0], [x1, y0], [x1, y1], [x0, y1]],
                 "page": page_number,
             })

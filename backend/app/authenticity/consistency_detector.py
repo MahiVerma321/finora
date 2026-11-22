@@ -2,7 +2,7 @@ from datetime import datetime
 import re
 
 from .ticket_schema import get_field_value, get_document_schema
-from app.authenticity.field_validator import validate_extracted_fields
+from app.authenticity.field_validator import DATE_FORMATS, validate_extracted_fields
 
 
 def add_check(checks, name, status, message, severity="info"):
@@ -42,22 +42,7 @@ def parse_date(value):
 
     value = str(value).strip()
 
-    formats = [
-        "%Y-%m-%d",
-        "%d-%m-%Y",
-        "%d/%m/%Y",
-        "%d %b %Y",
-        "%d %B %Y",
-        "%d-%b-%Y",
-        "%d-%B-%Y",
-        "%d/%b/%Y",
-        "%d/%B/%Y",
-        "%b %d, %Y",
-        "%B %d, %Y",
-        "%Y/%m/%d",
-    ]
-
-    for fmt in formats:
+    for fmt in DATE_FORMATS:
         try:
             return datetime.strptime(value, fmt).date()
         except ValueError:
@@ -67,7 +52,7 @@ def parse_date(value):
 
 
 def parse_numeric_amount(value):
-    if not value:
+    if value is None or str(value).strip() == "":
         return None
     cleaned = re.sub(r"(?i)\b(?:INR|RS|RUPEES|USD|EUR|GBP)\.?", "", str(value))
     cleaned = re.sub(r"[₹,$,€,£]", "", cleaned)
@@ -459,12 +444,19 @@ def analyze_consistency(document):
 
     # Field-format validation
     field_validation_report = validate_extracted_fields(document)
+    field_summary = field_validation_report["summary"]
+    if failed or field_summary["failed"]:
+        overall_status = "review_required"
+    elif warnings or field_summary["inconclusive"]:
+        overall_status = "incomplete"
+    else:
+        overall_status = "passed"
 
     return {
         "module": "combined_document_validation",
         "document_type": doc_type,
         "document_label": schema.get("label", "Document"),
-        "status": overall_status,
+        "status": consistency_report["status"],
         "summary": consistency_report["summary"],
         "checks": consistency_report["checks"],
         "overall_status": overall_status,

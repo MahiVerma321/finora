@@ -1,7 +1,7 @@
 import re
 
-from .ticket_schema import make_field, make_document_record, make_ticket
-from app.authenticity.generic_extractor import extract_generic_fields
+from .ticket_schema import make_field, make_document_record
+from app.authenticity.generic_extractor import extract_generic_fields, is_label_line
 from app.authenticity.field_merger import merge_fields
 from app.authenticity.observation_collector import (
     collect_repeated_observations
@@ -241,26 +241,22 @@ def detect_document_type(text):
 
     return best_type
 
-def detect_issuer(text: str, document_type: str) -> str:
+def detect_issuer(text: str, document_type: str) -> str | None:
     """
     Dynamically identify the issuer / vendor / provider from text,
     avoiding hardcoded assumptions.
     """
-    text_lower = text.lower()
-
     if document_type == "flight":
         for airline in KNOWN_AIRLINES:
             if re.search(r"\b" + re.escape(airline) + r"\b", text, re.IGNORECASE):
                 return airline
-        return "Aviation Carrier"
+        return None
 
     elif document_type == "train":
         for operator in KNOWN_RAIL_OPERATORS:
             if re.search(r"\b" + re.escape(operator) + r"\b", text, re.IGNORECASE):
                 return operator
-        if "electronic reservation slip" in text.lower() or "ers" in text.lower():
-            return "IRCTC"
-        return "Rail Operator"
+        return None
 
     elif document_type == "bus":
         for platform in KNOWN_BUS_PLATFORMS:
@@ -269,32 +265,32 @@ def detect_issuer(text: str, document_type: str) -> str:
         m = re.search(r"([A-Za-z0-9\s]{3,30})\s+(?:Travels|Transport|Lines|Express|Roadways)", text)
         if m:
             return m.group(0).strip()
-        return "Bus Operator"
+        return None
 
     elif document_type == "invoice":
         # Look for company name near top
         lines = [line.strip() for line in text.split("\n") if line.strip()]
         for line in lines[:4]:
-            if not re.search(r"(?i)\b(invoice|tax|date|page|bill to)\b", line):
+            if not is_label_line(line) and not re.search(r"(?i)\b(invoice|tax|date|page|bill to)\b", line):
                 if len(line) >= 3 and len(line) <= 40:
                     return line
-        return "Commercial Vendor"
+        return None
 
     elif document_type == "receipt":
         lines = [line.strip() for line in text.split("\n") if line.strip()]
         for line in lines[:3]:
-            if not re.search(r"(?i)\b(receipt|date|cash|total)\b", line):
+            if not is_label_line(line) and not re.search(r"(?i)\b(receipt|date|cash|total)\b", line):
                 if len(line) >= 3 and len(line) <= 40:
                     return line
-        return "Merchant"
+        return None
 
     elif document_type == "bank_statement":
         m = re.search(r"([A-Za-z\s]{3,30}\bBank\b|[A-Za-z\s]{3,30}\bBanking\b)", text, re.IGNORECASE)
         if m:
             return m.group(1).strip()
-        return "Financial Institution"
+        return None
 
-    return "Document Issuer"
+    return None
 
 
 def extract_flight(lines):
@@ -1015,6 +1011,12 @@ def extract_document(ocr_result):
     )
 
     doc_record["fields"] = merge_result["fields"]
+
+    # An explicitly labelled issuer also supports providers outside the known
+    # operator lists. Missing evidence stays unknown rather than a placeholder.
+    issuer_field = doc_record["fields"].get("issuer")
+    if issuer_field and issuer_field.get("value"):
+        doc_record["issuer"] = issuer_field["value"]
 
     # Step 5: Collect repeated OCR observations for consistency review
     repeated_result = collect_repeated_observations(

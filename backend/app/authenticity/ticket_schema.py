@@ -220,12 +220,3 @@ def get_field_value(document: dict, field_name: str):
         return value.get("value")
 
     return value
-
-
-def get_field_confidence(document: dict, field_name: str):
-    value = document.get("fields", {}).get(field_name)
-
-    if isinstance(value, dict):
-        return value.get("confidence")
-
-    return None
