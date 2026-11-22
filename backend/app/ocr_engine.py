@@ -1,15 +1,15 @@
 from functools import lru_cache
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from threading import Lock
 
 import pymupdf
-
+import gc
+_OCR_LOCK = Lock()
 try:
     from paddleocr import PaddleOCR
 except ImportError:
     PaddleOCR = None
-
-
 
 @lru_cache(maxsize=1)
 def get_ocr_engine():
@@ -29,6 +29,18 @@ def get_ocr_engine():
         engine="paddle",
     )
 
+def run_ocr(image_path: Path):
+    """
+    Allow only one OCR inference at a time.
+    Also protects first-time model initialization.
+    """
+    with _OCR_LOCK:
+        engine = get_ocr_engine()
+
+        if engine is None:
+            return []
+
+        return engine.predict(str(image_path))
 def read_result(result):
     """
     Convert PaddleOCR result into ordinary Python data.
@@ -65,11 +77,10 @@ def read_result(result):
 
 
 def extract_from_image(image_path: Path):
-    engine = get_ocr_engine()
-    if engine is None:
+    if PaddleOCR is None:
         return []
 
-    results = engine.predict(str(image_path))
+    results = run_ocr(image_path)
 
     all_lines = []
 
@@ -82,7 +93,6 @@ def extract_from_image(image_path: Path):
         all_lines.extend(lines)
 
     return all_lines
-
 
 def extract_from_pdf_pymupdf(pdf_path: Path):
     """
@@ -116,41 +126,55 @@ def extract_from_pdf_pymupdf(pdf_path: Path):
     return all_lines
 
 
+
+import gc
+
 def extract_from_pdf(pdf_path: Path):
-    engine = get_ocr_engine()
-    if engine is None:
+    """
+    Extract OCR text one PDF page at a time.
+    Release temporary image and OCR objects to reduce peak memory.
+    """
+    if PaddleOCR is None:
         return extract_from_pdf_pymupdf(pdf_path)
 
     all_lines = []
 
     with TemporaryDirectory() as temp_dir:
         temp_dir = Path(temp_dir)
-
         document = pymupdf.open(pdf_path)
 
-        for page_index, page in enumerate(document):
-            pixmap = page.get_pixmap(
-                matrix=pymupdf.Matrix(2, 2),
-                alpha=False
-            )
+        try:
+            for page_index in range(len(document)):
+                page = document.load_page(page_index)
 
-            image_path = temp_dir / f"page_{page_index + 1}.png"
-            pixmap.save(str(image_path))
+                pixmap = page.get_pixmap(
+                    matrix=pymupdf.Matrix(2, 2),
+                    alpha=False
+                )
 
-            results = engine.predict(str(image_path))
+                image_path = temp_dir / f"page_{page_index + 1}.png"
+                pixmap.save(str(image_path))
 
-            for result in results:
-                lines = read_result(result)
+                del pixmap
+                del page
 
-                for line in lines:
-                    line["page"] = page_index + 1
+                results = run_ocr(image_path)
 
-                all_lines.extend(lines)
+                for result in results:
+                    lines = read_result(result)
 
-        document.close()
+                    for line in lines:
+                        line["page"] = page_index + 1
+
+                    all_lines.extend(lines)
+
+                del results
+                gc.collect()
+
+        finally:
+            document.close()
 
     return all_lines
-
 
 def extract_document_text(file_path: Path):
     extension = file_path.suffix.lower()
