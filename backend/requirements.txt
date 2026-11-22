@@ -5,6 +5,6 @@ pymupdf
 pillow
 opencv-python-headless
 paddlepaddle==3.2.0
-paddleocr
+paddleocr==3.7.0
 pikepdf
 c2pa-python

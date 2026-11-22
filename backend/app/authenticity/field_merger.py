@@ -91,9 +91,35 @@ def merge_fields(specific_fields, generic_fields):
         generic = generic_fields.get(field_name)
 
         # Generic extractor found a new field.
+        # Generic extractor found a new field.
         if specific is None:
+
+            generic_validation = validate_field(
+                field_name, generic
+            )
+
+            if generic_validation[0] == "failed":
+                comparisons[field_name] = "generic_rejected"
+
+                validations[field_name] = {
+                    "generic": {
+                        "status": generic_validation[0],
+                        "message": generic_validation[1],
+                    }
+                }
+
+                continue
+
             merged_fields[field_name] = deepcopy(generic)
             comparisons[field_name] = "generic_only"
+
+            validations[field_name] = {
+                "generic": {
+                    "status": generic_validation[0],
+                    "message": generic_validation[1],
+                }
+            }
+
             continue
 
         # Specific extractor found a new field.

@@ -40,7 +40,7 @@ export default function Header() {
 
       <div className="system-status">
         <span className="status-dot" />
-        <span>LOCAL ANALYSIS SYSTEM</span>
+        <span>DIGITAL DOCUMENT FORENSICS SYSTEM</span>
       </div>
     </header>
   );

@@ -10,21 +10,24 @@ except ImportError:
     PaddleOCR = None
 
 
+
 @lru_cache(maxsize=1)
 def get_ocr_engine():
     """
-    Load the pretrained OCR model once if available.
+    Load lightweight PaddleOCR models once.
+    Uses PP-OCRv6 small models to reduce resource usage.
     """
     if PaddleOCR is None:
         return None
 
     return PaddleOCR(
+        text_detection_model_name="PP-OCRv6_small_det",
+        text_recognition_model_name="PP-OCRv6_small_rec",
         use_doc_orientation_classify=False,
         use_doc_unwarping=False,
         use_textline_orientation=False,
         engine="paddle",
     )
-
 
 def read_result(result):
     """

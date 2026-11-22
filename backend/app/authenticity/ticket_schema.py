@@ -1,18 +1,19 @@
 from typing import Any
 
 DOCUMENT_SCHEMAS = {
+
     "flight": {
         "category": "transport",
         "label": "Flight Ticket / Boarding Pass",
         "required_fields": [
             "issuer",
-            "flight_number",
             "origin",
             "destination",
-            "departure_date",
-            "departure_time",
         ],
         "optional_fields": [
+            "flight_number",
+            "departure_date",
+            "departure_time",
             "passenger_name",
             "seat",
             "boarding_time",
@@ -26,40 +27,47 @@ DOCUMENT_SCHEMAS = {
         "label": "Train Ticket / Reservation Slip",
         "required_fields": [
             "issuer",
+            "origin",
+            "destination",
+        ],
+        "optional_fields": [
             "train_number",
-            "origin",
-            "destination",
+            "train_name",
             "journey_date",
-        ],
-        "optional_fields": [
             "passenger_name",
             "departure_time",
             "arrival_time",
             "arrival_date",
+            "travel_class",
             "seat",
             "ticket_price",
             "pnr",
         ],
     },
-    "bus": {
-        "category": "transport",
-        "label": "Bus Ticket",
-        "required_fields": [
-            "issuer",
-            "origin",
-            "destination",
-            "journey_date",
-        ],
-        "optional_fields": [
-            "departure_time",
-            "arrival_time",
-            "arrival_date",
-            "seat",
-            "ticket_price",
-            "passenger_name",
-            "pnr",
-        ],
-    },
+   "bus": {
+    "category": "transport",
+    "label": "Bus Ticket",
+    "required_fields": [
+        "issuer",
+        "origin",
+        "destination",
+    ],
+    "optional_fields": [
+        "journey_date",
+        "departure_time",
+        "arrival_time",
+        "arrival_date",
+        "seat",
+        "ticket_price",
+        "passenger_name",
+        "pnr",
+        "ticket_number",
+        "operator",
+        "boarding_point",
+        "dropping_point",
+        "travel_class",
+    ],
+},
     "invoice": {
         "category": "commercial",
         "label": "Commercial Invoice",

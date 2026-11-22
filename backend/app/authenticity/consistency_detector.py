@@ -78,14 +78,19 @@ def parse_numeric_amount(value):
         return None
 
 
+
 def check_required_fields(document, checks):
+    """
+    Check required fields according to the detected document schema.
+    Missing fields produce warnings rather than automatic failures.
+    """
     document_type = document.get("document_type", "generic")
     schema = get_document_schema(document_type)
     required = schema.get("required_fields", [])
 
     if not required:
-        # For generic documents, check if at least some structural fields were detected
         fields = document.get("fields", {})
+
         if fields:
             add_check(
                 checks,
@@ -104,6 +109,7 @@ def check_required_fields(document, checks):
         return
 
     missing = []
+
     for field in required:
         if field == "issuer":
             value = document.get("issuer")
@@ -118,7 +124,9 @@ def check_required_fields(document, checks):
             checks,
             "required_fields",
             "warning",
-            "Missing fields: " + ", ".join(missing),
+            "Some expected fields could not be extracted: "
+            + ", ".join(missing)
+            + ". Manual review is recommended.",
             "warning"
         )
     else:
@@ -128,7 +136,6 @@ def check_required_fields(document, checks):
             "passed",
             "All configured required fields are present."
         )
-
 
 def check_route(document, checks):
     """

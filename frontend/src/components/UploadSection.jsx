@@ -198,7 +198,7 @@ export default function UploadSection({
 
             <div className="upload-security-note">
               <span className="security-symbol">◈</span>
-              <span>LOCAL FORENSIC SCREENING</span>
+              <span> FORENSIC SCREENING</span>
             </div>
           </div>
         </div>

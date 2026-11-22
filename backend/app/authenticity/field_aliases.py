@@ -73,10 +73,9 @@ FIELD_ALIASES = {
     ],
 
     "passenger_name": [
-        "passenger name",
-        "name of passenger",
-        "traveller name",
-        "customer name",
+    "passenger name",
+    "name of passenger",
+    "traveller name",
     ],
 
     "ticket_price": [
@@ -86,16 +85,19 @@ FIELD_ALIASES = {
         "amount paid",
         "total amount",
     ],
-
+    "ticket_number": [
+    "ticket number",
+    "ticket no",
+    "ticket #",
+    "booking number",
+    "booking id",
+    ],
     "pnr": [
-        "pnr",
-        "pnr number",
-        "pnr no",
-        "booking id",
-        "booking reference",
-        "e-ticket no",
-        "ticket no",
-        "reservation code",
+    "pnr",
+    "pnr number",
+    "pnr no",
+    "passenger name record",
+    "reservation code",
     ],
 
     # --- Commercial & Invoice Fields ---
@@ -192,15 +194,19 @@ FIELD_ALIASES = {
     ],
 
     "receipt_number": [
-        "receipt number",
-        "receipt no",
-        "rec no",
-        "receipt #",
-        "voucher no",
-        "transaction id",
-        "txn id",
-        "ref no",
-        "reference number",
+    "receipt number",
+    "receipt no",
+    "rec no",
+    "receipt #",
+    "voucher no",
+    ],
+
+    "reference_number": [
+    "transaction id",
+    "txn id",
+    "ref no",
+    "reference number",
+    "reference id",
     ],
 
     "receipt_date": [

@@ -6,7 +6,9 @@ from app.authenticity.field_merger import merge_fields
 from app.authenticity.observation_collector import (
     collect_repeated_observations
 )
-
+from app.authenticity.bus_field_filter import (
+    filter_bus_generic_fields,
+)
 
 KNOWN_AIRLINES = [
     "IndiGo", "Air India", "Emirates", "Delta", "United Airlines", "United",
@@ -67,75 +69,177 @@ def create_field(value, source_line=None):
     )
 
 
+
+
 def detect_document_type(text):
     """
-    Generalized schema-driven document type classification.
-    Supports commercial invoices, payment receipts, bank statements,
-    certificates, flight boarding passes, train tickets, bus tickets,
-    and generic documents.
+    Classify documents using weighted combinations of indicators.
+
+    Strong document-specific indicators receive higher scores.
+    Weak or ambiguous keywords cannot independently determine
+    the document category.
     """
     text_lower = text.lower()
 
-    # 1. Commercial Invoice
-    if any(k in text_lower for k in [
-        "tax invoice", "commercial invoice", "bill of supply",
-        "proforma invoice", "invoice no", "invoice #", "inv no",
-        "invoice date", "gstin", "subtotal"
-    ]) and ("ticket" not in text_lower or "invoice" in text_lower):
-        return "invoice"
+    def contains(phrase):
+        pattern = (
+            r"(?<![a-z0-9])"
+            + re.escape(phrase.lower())
+            + r"(?![a-z0-9])"
+        )
+        return bool(re.search(pattern, text_lower))
 
-    # 2. Payment Receipt / Cash Memo
-    if any(k in text_lower for k in [
-        "payment receipt", "cash memo", "sales receipt",
-        "receipt no", "receipt #", "paid amount", "payment confirmation"
-    ]):
-        return "receipt"
+    scores = {
+        "flight": 0,
+        "train": 0,
+        "bus": 0,
+        "invoice": 0,
+        "receipt": 0,
+        "bank_statement": 0,
+        "certificate": 0,
+    }
 
-    # 3. Bank / Account Statement
-    if any(k in text_lower for k in [
-        "bank statement", "account statement", "statement of account",
-        "opening balance", "closing balance", "statement period"
-    ]):
-        return "bank_statement"
+    # ---------------- FLIGHT ----------------
 
-    # 4. Certificate / Credential
-    if any(k in text_lower for k in [
-        "this is to certify", "certifies that", "awarded to",
-        "certificate of", "completion certificate", "degree certificate"
-    ]):
-        return "certificate"
+    for phrase in [
+        "boarding pass",
+        "e-ticket itinerary",
+        "airline booking reference",
+    ]:
+        if contains(phrase):
+            scores["flight"] += 5
 
-    # 5. Flight Ticket / Boarding Pass (Any Airline)
-    if any(k in text_lower for k in [
-        "boarding pass", "flight number", "flight no", "boarding time",
-        "gate", "terminal"
-    ]) or ("flight" in text_lower and any(a.lower() in text_lower for a in KNOWN_AIRLINES)):
-        return "flight"
+    if contains("flight number") or contains("flight no"):
+        scores["flight"] += 3
 
-    # 6. Train Ticket (Any Rail Operator)
-    if any(k in text_lower for k in [
-        "electronic reservation slip", "irctc", "railway", "railways",
-        "train no", "train number", "berth", "coach"
-    ]) or ("train" in text_lower and any(r.lower() in text_lower for r in KNOWN_RAIL_OPERATORS)):
-        return "train"
+    if contains("departure airport") and contains("arrival airport"):
+        scores["flight"] += 4
 
-    # 7. Bus Ticket (Any Bus Operator)
-    if any(k in text_lower for k in [
-        "bus ticket", "ticket information", "boarding point",
-        "dropping point"
-    ]) or ("bus" in text_lower and any(b.lower() in text_lower for b in KNOWN_BUS_PLATFORMS)):
-        return "bus"
+    if (
+        contains("flight")
+        and any(contains(a) for a in KNOWN_AIRLINES)
+    ):
+        scores["flight"] += 2
 
-    # Fallback to travel types if keywords exist
-    if "boarding pass" in text_lower or "flight" in text_lower:
-        return "flight"
-    if "train" in text_lower or "rail" in text_lower or "ers" in text_lower:
-        return "train"
-    if "bus" in text_lower:
-        return "bus"
+    # ---------------- TRAIN ----------------
 
-    return "generic"
+    if contains("electronic reservation slip"):
+        scores["train"] += 6
 
+    if contains("indian railways"):
+        scores["train"] += 5
+
+    if contains("irctc"):
+        scores["train"] += 4
+
+    if contains("train number") or contains("train no"):
+        scores["train"] += 3
+
+    if contains("coach") and contains("berth"):
+        scores["train"] += 3
+
+    # PNR alone is not sufficient evidence of a train ticket.
+    if contains("pnr"):
+        scores["train"] += 1
+
+    if contains("train") and contains("journey date"):
+        scores["train"] += 2
+
+    # ---------------- BUS ----------------
+
+    if contains("bus ticket") or contains("bus booking"):
+        scores["bus"] += 5
+
+    if contains("bus operator"):
+        scores["bus"] += 3
+
+    if contains("boarding point") and contains("dropping point"):
+        scores["bus"] += 4
+
+    if any(contains(b) for b in KNOWN_BUS_PLATFORMS):
+        scores["bus"] += 2
+
+    # ---------------- BANK STATEMENT ----------------
+
+    if contains("bank statement"):
+        scores["bank_statement"] += 6
+
+    if contains("account statement"):
+        scores["bank_statement"] += 5
+
+    if contains("statement of account"):
+        scores["bank_statement"] += 5
+
+    if contains("opening balance") and contains("closing balance"):
+        scores["bank_statement"] += 3
+
+    # ---------------- CERTIFICATE ----------------
+
+    for phrase in [
+        "this is to certify",
+        "certifies that",
+        "awarded to",
+        "certificate of",
+        "completion certificate",
+        "degree certificate",
+    ]:
+        if contains(phrase):
+            scores["certificate"] += 5
+
+    # ---------------- INVOICE ----------------
+
+    if contains("tax invoice") or contains("commercial invoice"):
+        scores["invoice"] += 6
+
+    if contains("proforma invoice") or contains("bill of supply"):
+        scores["invoice"] += 5
+
+    if contains("invoice number") or contains("invoice no"):
+        scores["invoice"] += 2
+
+    if contains("invoice date"):
+        scores["invoice"] += 2
+
+    if contains("gstin") and contains("subtotal"):
+        scores["invoice"] += 4
+
+    # ---------------- RECEIPT ----------------
+
+    if contains("payment receipt"):
+        scores["receipt"] += 6
+
+    if contains("cash memo") or contains("sales receipt"):
+        scores["receipt"] += 5
+
+    if contains("payment confirmation"):
+        scores["receipt"] += 4
+
+    if contains("receipt number") or contains("receipt no"):
+        scores["receipt"] += 2
+
+    if contains("paid amount") and contains("transaction date"):
+        scores["receipt"] += 3
+
+    # ---------------- FINAL CLASSIFICATION ----------------
+
+    ranked = sorted(
+        scores.items(),
+        key=lambda item: item[1],
+        reverse=True
+    )
+
+    best_type, best_score = ranked[0]
+    second_score = ranked[1][1]
+
+    # Require meaningful evidence and a clear distinction
+    # from the next most likely document category.
+    if best_score < 4:
+        return "generic"
+
+    if best_score - second_score < 2:
+        return "generic"
+
+    return best_type
 
 def detect_issuer(text: str, document_type: str) -> str:
     """
@@ -287,6 +391,38 @@ def extract_flight(lines):
             passenger_line["text"], passenger_line
         )
 
+        # PNR / Airline booking reference
+    pnr_line = get_line(
+        lines,
+        r"^\s*PNR\s*[:\-]?\s*[A-Z0-9]{5,10}\s*$"
+    )
+
+    if pnr_line:
+        match = re.search(
+            r"\bPNR\s*[:\-]?\s*([A-Z0-9]{5,10})\b",
+            pnr_line["text"],
+            re.IGNORECASE
+        )
+        if match:
+            fields["pnr"] = create_field(
+                match.group(1).upper(),
+                pnr_line
+            )
+    else:
+        pnr_value_line = get_next_line(
+            lines,
+            r"^\s*PNR\s*[:\-]?\s*$"
+        )
+
+        if pnr_value_line:
+            pnr_value = pnr_value_line["text"].strip()
+
+            if re.fullmatch(r"[A-Z0-9]{5,10}", pnr_value, re.IGNORECASE):
+                fields["pnr"] = create_field(
+                    pnr_value.upper(),
+                    pnr_value_line
+                )
+
     return make_document_record(
         document_type="flight",
         issuer=issuer,
@@ -386,65 +522,281 @@ def extract_train(lines):
     )
 
 
+
 def extract_bus(lines):
-    """Generalized bus ticket extraction for any bus operator."""
+    """Extract fields from bus tickets using bus-specific section scanning."""
     fields = {}
-    full_text = "\n".join(l.get("text", "") for l in lines)
+    full_text = "\n".join(line.get("text", "") for line in lines)
     issuer = detect_issuer(full_text, "bus")
 
-    journey_line = get_next_line(lines, r"Journey Date and Time|Journey Date")
-    if journey_line:
-        match = re.search(
-            r"(\d{1,2}/\d{1,2}/\d{4}),?\s*(\d{1,2}:\d{2}\s*[AP]M)?",
-            journey_line["text"],
-            re.IGNORECASE
-        )
-        if match:
-            fields["journey_date"] = create_field(match.group(1), journey_line)
-            if match.group(2):
-                fields["departure_time"] = create_field(match.group(2), journey_line)
+    def text_at(index):
+        if 0 <= index < len(lines):
+            return str(lines[index].get("text", "")).strip()
+        return ""
 
-    boarding_line = get_next_line(lines, r"^\s*Boarding Point\s*$|^\s*From\s*$")
-    if boarding_line:
-        fields["origin"] = create_field(boarding_line["text"], boarding_line)
+    def add_field(key, value, index):
+        value = str(value).strip()
+        if value and index < len(lines):
+            fields[key] = create_field(value, lines[index])
 
-    dropping_line = get_next_line(lines, r"^\s*Dropping Point\s*$|^\s*To\s*$")
-    if dropping_line:
-        fields["destination"] = create_field(dropping_line["text"], dropping_line)
+    def find_label(pattern, start=0):
+        for i in range(start, len(lines)):
+            if re.search(pattern, text_at(i), re.IGNORECASE):
+                return i
+        return None
 
-    operator_line = get_next_line(lines, r"^\s*Travels\s*$|^\s*Bus Operator\s*$")
-    if operator_line:
-        fields["operator"] = create_field(operator_line["text"], operator_line)
+    def next_meaningful(start, limit=5, stop_pattern=None):
+        for i in range(start + 1, min(len(lines), start + limit + 1)):
+            value = text_at(i)
 
-    price_line = get_line(lines, r"Ticket Price|Total Fare")
-    if price_line:
-        price_value_line = get_next_line(lines, r"Ticket Price|Total Fare")
-        if price_value_line:
-            price_match = re.search(
-                r"(?:Rs\.?|₹|\$|€)\s*[\d,]+(?:\.\d{1,2})?",
-                price_value_line["text"],
+            if not value:
+                continue
+
+            if stop_pattern and re.search(stop_pattern, value, re.IGNORECASE):
+                break
+
+            # Skip OCR decorative symbols such as 日 and 黃.
+            if not re.search(r"[A-Za-z0-9]", value):
+                continue
+
+            return i
+
+        return None
+
+    def extract_datetime(label_pattern, field_date, field_time):
+        index = find_label(label_pattern)
+        if index is None:
+            return
+
+        for i in range(index + 1, min(len(lines), index + 7)):
+            value = text_at(i)
+
+            match = re.search(
+                r"(\d{1,2}/\d{1,2}/\d{4})"
+                r"(?:,?\s*(\d{1,2}:\d{2}\s*[AP]M))?",
+                value,
                 re.IGNORECASE
             )
-            if price_match:
-                fields["ticket_price"] = create_field(price_match.group(0), price_value_line)
 
-    seat_line = get_next_line(lines, r"^\s*Seat no\s*$|^\s*Seat\s*$")
-    if seat_line:
-        seat_value = seat_line["text"].strip().upper()
-        if re.fullmatch(r"[A-Z0-9-]{1,10}", seat_value):
-            fields["seat"] = create_field(seat_value, seat_line)
+            if match:
+                add_field(field_date, match.group(1), i)
 
-    arrival_line = get_next_line(lines, r"DROPPING DATE\s*&\s*TIME|Arrival Time")
-    if arrival_line:
+                if match.group(2):
+                    add_field(field_time, match.group(2), i)
+
+                return
+
+    # Ticket number: supports inline and next-line values.
+    ticket_index = find_label(r"Ticket\s+Number")
+
+    if ticket_index is not None:
+        ticket_text = text_at(ticket_index)
+
         match = re.search(
-            r"(\d{1,2}/\d{1,2}/\d{4}),?\s*(\d{1,2}:\d{2}\s*[AP]M)?",
-            arrival_line["text"],
+            r"Ticket\s+Number\s*[:#]?\s*([A-Z0-9-]+)",
+            ticket_text,
             re.IGNORECASE
         )
+
         if match:
-            fields["arrival_date"] = create_field(match.group(1), arrival_line)
-            if match.group(2):
-                fields["arrival_time"] = create_field(match.group(2), arrival_line)
+            add_field("ticket_number", match.group(1), ticket_index)
+        else:
+            value_index = next_meaningful(ticket_index, limit=2)
+            if value_index is not None:
+                add_field("ticket_number", text_at(value_index), value_index)
+
+    # PNR: supports inline and next-line values.
+    pnr_index = find_label(r"\bPNR(?:\s+No)?\b")
+
+    if pnr_index is not None:
+        pnr_text = text_at(pnr_index)
+
+        match = re.search(
+            r"\bPNR(?:\s+No)?\.?\s*[:#]?\s*([A-Z0-9-]+)",
+            pnr_text,
+            re.IGNORECASE
+        )
+
+        if match:
+            add_field("pnr", match.group(1), pnr_index)
+        else:
+            value_index = next_meaningful(pnr_index, limit=2)
+            if value_index is not None:
+                add_field("pnr", text_at(value_index), value_index)
+
+    # Journey date and departure time.
+    extract_datetime(
+        r"Journey Date and Time|Journey Date",
+        "journey_date",
+        "departure_time"
+    )
+
+    # Arrival date and time.
+    extract_datetime(
+        r"DROPPING DATE\s*&\s*TIME|Arrival Time",
+        "arrival_date",
+        "arrival_time"
+    )
+
+    # Boarding and dropping sections.
+    boarding_index = find_label(r"^\s*Boarding Point\s*$")
+    dropping_index = find_label(r"^\s*Dropping Point\s*$")
+
+    if boarding_index is not None:
+        end = dropping_index if dropping_index is not None else min(
+            len(lines), boarding_index + 7
+        )
+
+        candidates = []
+        for i in range(boarding_index + 1, end):
+            value = text_at(i)
+            if value and re.search(r"[A-Za-z]", value):
+                if not re.search(
+                    r"Landmark|Contact|Phone|Passenger|Ticket|Date",
+                    value,
+                    re.IGNORECASE
+                ):
+                    candidates.append((i, value))
+
+        if candidates:
+            add_field("origin", candidates[0][1], candidates[0][0])
+
+            if len(candidates) > 1:
+                add_field(
+                    "boarding_point",
+                    candidates[1][1],
+                    candidates[1][0]
+                )
+
+    if dropping_index is not None:
+        end = find_label(
+            r"DROPPING DATE\s*&\s*TIME|Passenger Details",
+            start=dropping_index + 1
+        )
+        if end is None:
+            end = min(len(lines), dropping_index + 7)
+
+        candidates = []
+        for i in range(dropping_index + 1, end):
+            value = text_at(i)
+            if value and re.search(r"[A-Za-z]", value):
+                if not re.search(
+                    r"Landmark|Contact|Phone|Date|Time",
+                    value,
+                    re.IGNORECASE
+                ):
+                    candidates.append((i, value))
+
+        if candidates:
+            add_field("destination", candidates[0][1], candidates[0][0])
+
+            if len(candidates) > 1:
+                add_field(
+                    "dropping_point",
+                    candidates[1][1],
+                    candidates[1][0]
+                )
+
+    # Operator: skip decorative OCR lines after Travels.
+    operator_index = find_label(r"^\s*(?:Travels|Bus Operator)\s*$")
+    if operator_index is not None:
+        value_index = next_meaningful(operator_index, limit=3)
+
+        if value_index is not None:
+            operator_value = text_at(value_index)
+
+            if not re.search(
+                r"Ticket|Journey|Boarding|Dropping|Passenger|Price",
+                operator_value,
+                re.IGNORECASE
+            ):
+                add_field("operator", operator_value, value_index)
+
+                # Travel class is often immediately after the operator.
+                class_index = next_meaningful(value_index, limit=3)
+
+                if class_index is not None:
+                    class_value = text_at(class_index)
+
+                    if re.search(
+                        r"A/C|AC|Sleeper|Seater|Non.?AC",
+                        class_value,
+                        re.IGNORECASE
+                    ):
+                        add_field(
+                            "travel_class",
+                            class_value,
+                            class_index
+                        )
+
+    # Ticket price.
+    for i, line in enumerate(lines):
+        if re.search(r"Ticket Price|Total Fare", text_at(i), re.IGNORECASE):
+            match = re.search(
+                r"(?:Rs\.?|INR|₹|\$|€)\s*[\d,]+(?:\.\d{1,2})?",
+                text_at(i),
+                re.IGNORECASE
+            )
+
+            if match:
+                add_field("ticket_price", match.group(0), i)
+                break
+
+            value_index = next_meaningful(i, limit=3)
+            if value_index is not None:
+                match = re.search(
+                    r"(?:Rs\.?|INR|₹|\$|€)\s*[\d,]+(?:\.\d{1,2})?",
+                    text_at(value_index),
+                    re.IGNORECASE
+                )
+                if match:
+                    add_field("ticket_price", match.group(0), value_index)
+                    break
+
+    # Passenger name and seat, using the Passenger Details section.
+    passenger_index = find_label(r"^\s*Passenger Details\s*$")
+
+    if passenger_index is not None:
+        seat_label = find_label(
+            r"^\s*Seat\s+no\s*$|^\s*Seat\s*$",
+            start=passenger_index + 1
+        )
+
+        if seat_label is not None:
+            section_end = min(len(lines), seat_label + 8)
+            passenger_candidates = []
+
+            for i in range(seat_label + 1, section_end):
+                value = text_at(i)
+
+                if not value:
+                    continue
+
+                # Ignore numeric passenger count and age/gender details.
+                if re.fullmatch(r"\d+", value):
+                    continue
+
+                if re.search(
+                    r"Yrs|Years|Male|Female|Gender|Passenger|Contact",
+                    value,
+                    re.IGNORECASE
+                ):
+                    continue
+
+                if re.fullmatch(r"[A-Za-z][A-Za-z .'-]{2,}", value):
+                    passenger_candidates.append((i, value))
+
+            if passenger_candidates:
+                name_index, name_value = passenger_candidates[0]
+                add_field("passenger_name", name_value, name_index)
+
+                # Prefer the seat identifier immediately after the name.
+                for i in range(name_index + 1, section_end):
+                    value = text_at(i).upper()
+
+                    if re.fullmatch(r"[A-Z]{1,3}\d{1,3}", value):
+                        add_field("seat", value, i)
+                        break
 
     return make_document_record(
         document_type="bus",
@@ -452,7 +804,6 @@ def extract_bus(lines):
         fields=fields,
         category="transport"
     )
-
 
 def extract_invoice(lines):
     """Extraction template for commercial invoices."""
@@ -637,6 +988,14 @@ def extract_document(ocr_result):
 
     # Step 2: Generic extraction
     generic_result = extract_generic_fields(lines)
+
+    # Apply bus-specific filtering only.
+    # Flight and train extraction remain unchanged.
+    if document_type == "bus":
+        generic_result["fields"] = filter_bus_generic_fields(
+            generic_result.get("fields", {}),
+            doc_record.get("fields", {}) if doc_record else {}
+        )
 
     # Step 3: Fallback generic document record if specific extraction yielded None
     if doc_record is None:
