@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.preprocessing import analyze_document
 from app.ela_detector import generate_ela
-from app.ocr_engine import extract_document_text
+from app.ocr_engine import extract_document_text, extract_consistency_text
 from app.authenticity.ticket_extractor import extract_ticket
 from app.authenticity.consistency_detector import analyze_consistency
 from app.manipulation_detector import analyze_manipulation, generate_findings_summary
@@ -258,8 +258,8 @@ def run_consistency_analysis(file_id: str):
     file_path = find_uploaded_file(file_id)
 
     try:
-        # Step 1: OCR extraction
-        ocr_result = extract_document_text(file_path)
+        # Step 1: Native PDF text, with OCR only for scanned pages.
+        ocr_result = extract_consistency_text(file_path)
 
         # Step 2: Structured ticket extraction
         ticket = extract_ticket(ocr_result)
