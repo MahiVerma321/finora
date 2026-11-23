@@ -141,7 +141,7 @@ export default function UploadSection({
           <div className="upload-side-panel">
             <div className="upload-side-top">
               <span className="side-panel-label">EXAMINATION PROTOCOL</span>
-              <span className="side-panel-number">01 — 04</span>
+              <span className="side-panel-number">01 — 03</span>
             </div>
 
             <button
@@ -183,7 +183,7 @@ export default function UploadSection({
   <span className={`protocol-indicator ${activeStage === "provenance" ? "active" : "inactive"}`} />
 </button>
 
-<button
+{/* <button
   type="button"
   className={`protocol-item ${activeStage === "consistency" ? "active" : ""}`}
   onClick={() => setActiveStage("consistency")}
@@ -194,7 +194,7 @@ export default function UploadSection({
     <span>Verify domain & schema rules</span>
   </div>
   <span className={`protocol-indicator ${activeStage === "consistency" ? "active" : "inactive"}`} />
-</button>
+</button> */}
 
             <div className="upload-security-note">
               <span className="security-symbol">◈</span>
@@ -340,7 +340,7 @@ export default function UploadSection({
                 )}
               </div>
 
-              <div className="dribbble-analysis-card consistency-card">
+              {/* <div className="dribbble-analysis-card consistency-card">
                 <span className="analysis-card-number">04</span>
                 <div className="analysis-card-icon">✓</div>
                 <span className="upload-step-label">
@@ -368,7 +368,7 @@ export default function UploadSection({
                 {consistencyError && (
                   <p className="message error">{consistencyError}</p>
                 )}
-              </div>
+              </div> */}
 
             </div>
           )}

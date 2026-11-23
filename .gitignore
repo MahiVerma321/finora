@@ -31,3 +31,4 @@ results/
 # Test PDFs and generated analysis images
 backend/test_revisions/
 backend/test_manipulation_output/
+backend/test_native_train.py

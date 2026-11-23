@@ -6,7 +6,7 @@ import UploadSection from "./components/UploadSection";
 
 import ManipulationReport from "./reports/ManipulationReport";
 import ProvenanceReport from "./reports/ProvenanceReport";
-import ConsistencyReport from "./reports/ConsistencyReport";
+// import ConsistencyReport from "./reports/ConsistencyReport";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
@@ -228,7 +228,7 @@ export default function App() {
 
       <ProvenanceReport aiAnalysis={aiAnalysis} />
 
-      <ConsistencyReport consistencyData={consistencyData} />
+      {/* <ConsistencyReport consistencyData={consistencyData} /> */}
 
       <footer>
         DIGITAL DOCUMENT FORENSICS · SCHEMA-DRIVEN SCREENING · PROTOTYPE
