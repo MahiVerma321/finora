@@ -475,7 +475,9 @@ def extract_train(lines):
             fields["train_number"] = create_field(match.group(1), train_line)
             fields["train_name"] = create_field(match.group(2).strip(), train_line)
 
-    origin = extract_station(r"^\s*Boarding At\b|^\s*From\b")
+    origin = extract_station(
+        r"^\s*Booked\s+from\b|^\s*Boarding At\b|^\s*From\b"
+    )
     if origin:
         fields["origin"] = origin
 
