@@ -45,6 +45,11 @@ def _labelled_observation(index, lines):
         if not match:
             continue
         value = match.group("value").strip()
+        if (
+            "train_number" in fields
+            and normalize_observation(value) in {"/name", "name", "/"}
+        ):
+            return fields, "", line
         source = line
         validators = [FIELD_VALIDATORS[field] for field in fields if field in FIELD_VALIDATORS]
         if value and not match.group("separator") and validators:

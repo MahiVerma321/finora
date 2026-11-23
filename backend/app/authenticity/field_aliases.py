@@ -69,7 +69,6 @@ FIELD_ALIASES = {
     "train_number": [
         "train number",
         "train no",
-        "train",
     ],
 
     "passenger_name": [
